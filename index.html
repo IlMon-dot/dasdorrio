@@ -55,8 +55,9 @@
     /* Форма и ритм */
     --pill-h:52px; --thumb:60px; --rail-gap:10px; --rail-inset:8px; --rail-pad:12px;
     --gutter:20px;
-    /* Кадр сцены: квадратная картинка, которая накрывает экран; центр задаёт скрипт */
-    --cover-size:100vw; --cover-cx:48%;
+    /* Кадр сцены: квадратная картинка, которая накрывает экран; центр и предел размера задаёт скрипт:
+       герой не выше подиума, иначе в высоких окнах он налезает на название */
+    --cover-size:min(100vw, var(--cover-max, 9999px)); --cover-cx:48%;
     --font-display:"Unbounded", "Arial Black", system-ui, sans-serif;
     --font-text:"Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --ease-out:cubic-bezier(.16,1,.3,1);
@@ -214,7 +215,7 @@
 
   /* Десктоп: постер — картинка во всю ширину, название и таблетки внизу слева, лента справа */
   @media (min-width:900px){
-    :root{--thumb:76px; --rail-gap:14px; --rail-inset:26px; --gutter:56px; --cover-size:min(112dvh, 100vw); --cover-cx:60%}
+    :root{--thumb:76px; --rail-gap:14px; --rail-inset:26px; --gutter:56px; --cover-size:min(112dvh, 100vw, var(--cover-max, 9999px)); --cover-cx:60%}
     .logo img{width:168px}
     .top{padding-top:26px}
     .layer .frame{
@@ -383,6 +384,7 @@
     var sceneTop = scene.getBoundingClientRect().top;
     var r = podium.getBoundingClientRect();
     var podiumCy = r.top - sceneTop + r.height / 2;
+    root.style.setProperty('--cover-max', Math.round(r.height * 0.92 / box[3]) + 'px');   // герой ≤ 92 % высоты подиума
     var frame = cover.querySelector('.frame');
     var size = frame ? frame.offsetHeight : Math.max(window.innerWidth, window.innerHeight);
     var pc = box[1] + box[3] / 2;
