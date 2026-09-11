@@ -109,15 +109,19 @@
     background:radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.35), rgba(0,0,0,0) 72%);
     transform-origin:center; pointer-events:none;
   }
-  .tint{
-    position:absolute; inset:0; z-index:1; pointer-events:none;
-    background:linear-gradient(to top, var(--bg) 0%, var(--bg) 6%, rgba(0,0,0,0) 100%);
+  /* Передний кадр повторяет геометрию фона, но без маски: герой не тускнеет у краёв */
+  .layer .frame.fg{-webkit-mask-image:none; mask-image:none}
+  /* Вуаль — затемнение в тоне палитры: внизу под текст, вверху под логотип. Лежит МЕЖДУ фоном и героем,
+     поэтому товар остаётся ярким, а пол вокруг него уходит в тень — насос не сливается с фоном */
+  .layer .veil{
+    position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(to top, var(--bg) 0%, var(--bg) 4%, rgba(0,0,0,0) 58%);
   }
   @supports (background: color-mix(in srgb, red 50%, transparent)){
-    .tint{
+    .layer .veil{
       background:
-        linear-gradient(to top, var(--bg) 0%, var(--bg) 4%, color-mix(in srgb, var(--bg) 80%, transparent) 22%, color-mix(in srgb, var(--bg) 35%, transparent) 46%, rgba(0,0,0,0) 62%),
-        linear-gradient(to bottom, color-mix(in srgb, var(--bg) 45%, transparent) 0%, rgba(0,0,0,0) 22%);
+        linear-gradient(to top, var(--bg) 0%, color-mix(in srgb, var(--bg) 94%, transparent) 10%, color-mix(in srgb, var(--bg) 75%, transparent) 24%, color-mix(in srgb, var(--bg) 42%, transparent) 40%, rgba(0,0,0,0) 56%),
+        linear-gradient(to bottom, color-mix(in srgb, var(--bg) 42%, transparent) 0%, rgba(0,0,0,0) 20%);
     }
   }
 
@@ -203,11 +207,6 @@
   }
   .rail button:focus-visible{outline-offset:4px}
 
-  .foot{
-    position:absolute; left:var(--gutter); bottom:calc(10px + env(safe-area-inset-bottom)); z-index:2;
-    margin:0; font-size:14px; color:var(--fg2); display:none;
-  }
-
   /* Низкие экраны: миниатюры компактнее, чтобы лента умещалась над текстом */
   @media (max-height:700px) and (max-width:899px){
     :root{--thumb:50px; --rail-gap:8px}
@@ -232,7 +231,6 @@
     .short{font-size:18px; margin-top:14px}
     .pills{margin-top:28px; gap:12px}
     .pill{height:56px; padding:0 24px 0 22px; font-size:17px}
-    .foot{display:block}
   }
   @media (min-width:1600px){
     h1{font-size:58px}
@@ -246,7 +244,6 @@
 <body>
 <div class="scene" id="scene">
   <div class="cover" id="cover" aria-hidden="true"></div>
-  <div class="tint" aria-hidden="true"></div>
   <header class="top">
     <a class="logo" href="#" id="logo-link" aria-label="Dasdorrio — в начало">
       <img id="logo" src="logo/dasdorrio-light.webp" width="340" height="171" alt="Dasdorrio">
@@ -263,7 +260,6 @@
   </main>
 
   <nav class="rail" id="rail" aria-label="Выбор товара"></nav>
-  <p class="foot">Товары продаются на маркетплейсах и в магазине — сайт только показывает, где.</p>
   <noscript><p style="padding:20px">Для выбора товара нужен JavaScript. Все товары есть на Wildberries и Ozon по запросу «Dasdorrio».</p></noscript>
 </div>
 
@@ -351,7 +347,7 @@
     });
   }
 
-  /* Слой сцены: размытая заливка + кадр с фоном, героем на своём месте и тенью под ним */
+  /* Слой сцены: размытая заливка + кадр с фоном + вуаль + передний кадр с тенью и героем на своём месте */
   function buildLayer(t, g) {
     var box = t.геройБокс || [0.3, 0.3, 0.4, 0.4];
     var layer = document.createElement('div');
@@ -363,19 +359,21 @@
       var bg = document.createElement('img'); bg.className = 'bg'; bg.src = t.сцена; bg.alt = '';
       frame.appendChild(bg);
     }
+    var veil = document.createElement('div'); veil.className = 'veil';
+    var fg = document.createElement('div'); fg.className = 'frame fg';
     var shadow = document.createElement('div'); shadow.className = 'shadow';
     shadow.style.setProperty('--sx', (box[0] + box[2] * 0.08) * 100 + '%');
     shadow.style.setProperty('--sw', box[2] * 0.84 * 100 + '%');
     shadow.style.setProperty('--sy', (box[1] + box[3] * 0.93) * 100 + '%');
     shadow.style.setProperty('--sh', box[3] * 0.12 * 100 + '%');
-    frame.appendChild(shadow);
+    fg.appendChild(shadow);
     var hero = document.createElement('img'); hero.className = 'hero';
     hero.src = t.герой; hero.alt = t.название; hero.setAttribute('fetchpriority', 'high');
     hero.style.setProperty('--hx', box[0] * 100 + '%');
     hero.style.setProperty('--hy', box[1] * 100 + '%');
     hero.style.setProperty('--hw', box[2] * 100 + '%');
-    frame.appendChild(hero);
-    layer.appendChild(blur); layer.appendChild(frame);
+    fg.appendChild(hero);
+    layer.appendChild(blur); layer.appendChild(frame); layer.appendChild(veil); layer.appendChild(fg);
     return { layer: layer, frame: frame, hero: hero, shadow: shadow };
   }
 
