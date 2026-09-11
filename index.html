@@ -50,7 +50,7 @@
     /* Цвета площадок — не меняются, это узнавание */
     --wb:#CB11AB; --ozon:#005BFF; --market:#FFCC00; --market-ink:#111111;
     /* Форма и ритм */
-    --pill-h:52px; --thumb:56px; --rail-gap:10px; --rail-inset:10px;
+    --pill-h:52px; --thumb:60px; --rail-gap:10px; --rail-inset:8px; --rail-pad:12px;
     --gutter:20px;
     --font-display:"Unbounded", "Arial Black", system-ui, sans-serif;
     --font-text:"Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -113,7 +113,7 @@
   /* Подиум: герой + декор. Справа оставляем место под ленту */
   .podium{
     position:relative; min-height:300px;
-    margin-right:calc(var(--thumb) + var(--rail-inset) + 10px);
+    margin-right:calc(var(--thumb) + var(--rail-inset) + 12px);
   }
   .hero{
     position:absolute; inset:0; margin:0;
@@ -177,23 +177,24 @@
   /* Лента выбора: справа, под большой палец */
   .rail{
     position:absolute; z-index:6;
-    right:max(var(--rail-inset), env(safe-area-inset-right));
+    right:max(calc(var(--rail-inset) - var(--rail-pad)), env(safe-area-inset-right));
     top:var(--rail-top, 50%); transform:translateY(-50%);
     transition:top .4s var(--ease-out);
     display:flex; flex-direction:column; gap:var(--rail-gap);
     max-height:calc(100dvh - 150px); overflow-y:auto; overscroll-behavior:contain;
-    padding:8px 4px; scrollbar-width:none; scroll-snap-type:y proximity;
+    /* поля ленты шире кольца активного кругляшка (масштаб 1,14 + кольцо 6 px), иначе прокрутка его режет */
+    padding:var(--rail-pad); scrollbar-width:none; scroll-snap-type:y proximity;
   }
   .rail::-webkit-scrollbar{display:none}
   .rail button{
     width:var(--thumb); height:var(--thumb); flex:none; scroll-snap-align:center;
     border:0; padding:0; border-radius:50%; cursor:pointer;
-    background:var(--c); display:grid; place-items:center;
+    background:var(--c); background:color-mix(in srgb, var(--c) 78%, #fff); display:grid; place-items:center;
     box-shadow:0 4px 10px -4px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.18);
     transition:transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
     -webkit-tap-highlight-color:transparent;
   }
-  .rail button img{width:76%; height:76%; object-fit:contain; pointer-events:none}
+  .rail button img{width:100%; height:100%; border-radius:50%; object-fit:cover; pointer-events:none}
   .rail button[aria-current="true"]{
     transform:scale(1.14);
     box-shadow:0 0 0 3px var(--bg), 0 0 0 6px var(--fg), 0 8px 16px -6px rgba(0,0,0,.6);
@@ -207,18 +208,18 @@
 
   /* Низкие экраны: миниатюры компактнее, чтобы лента умещалась над текстом */
   @media (max-height:700px) and (max-width:899px){
-    :root{--thumb:48px; --rail-gap:8px}
+    :root{--thumb:50px; --rail-gap:8px}
   }
 
   /* Десктоп: название слева, товар по центру, лента справа */
   @media (min-width:900px){
-    :root{--thumb:72px; --rail-gap:14px; --rail-inset:28px; --gutter:56px}
+    :root{--thumb:76px; --rail-gap:14px; --rail-inset:26px; --gutter:56px}
     .logo img{width:168px}
     .top{padding-top:26px}
     .stage{
       grid-template-rows:none; grid-template-columns:minmax(340px, 11fr) minmax(0, 13fr);
       align-items:center; column-gap:24px;
-      padding:110px calc(var(--thumb) + var(--rail-inset) + 40px) 60px var(--gutter);
+      padding:110px calc(var(--thumb) + var(--rail-inset) + 44px) 60px var(--gutter);
       min-height:100dvh;
     }
     .podium{order:2; min-height:min(72vh, 760px); margin-right:0}

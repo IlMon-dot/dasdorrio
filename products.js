@@ -29,7 +29,6 @@ const ТОВАРЫ = [
     декор: [
       'photo/decor/mashinka-1.webp',   // пульт
       'photo/decor/mashinka-2.webp',   // аккумулятор 2000 мАч
-      'photo/decor/mashinka-3.webp',   // запасные колёса
     ],
     палитра: { фон: '#1B2620', фон2: '#0F1915', акцент: '#B8F53C', акцент2: '#FFD400', текст: '#F4F8F2', текст2: '#A8BDB0', логотип: 'светлый' },
     ссылки: {
@@ -45,10 +44,7 @@ const ТОВАРЫ = [
     герой: 'photo/wifi-hero.webp',
     миниатюра: 'photo/wifi-thumb.webp',
     сцена: 'photo/bg/wifi.webp',
-    декор: [
-      'photo/decor/wifi-1.webp',       // вид сбоку
-      'photo/decor/wifi-2.webp',       // вид со спины
-    ],
+    декор: [],                       // боковые виды смотрелись как случайные бруски — убраны
     палитра: { фон: '#F26A1B', фон2: '#D4550E', акцент: '#111111', акцент2: '#FFFFFF', текст: '#1B1006', текст2: '#331503', логотип: 'тёмный' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/1008544354/detail.aspx',
