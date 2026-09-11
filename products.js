@@ -58,7 +58,7 @@ const ТОВАРЫ = [
     герой: 'photo/drakon-hero.webp',
     миниатюра: 'photo/drakon-thumb.webp',
     сцена: 'photo/bg/drakon.webp',
-    геройБокс: [0.3125, 0.0771, 0.5884, 0.731],
+    геройБокс: [0.3901, 0.1611, 0.4507, 0.6641],
     палитра: { фон: '#0A4F44', фон2: '#063A32', акцент: '#FFD23F', акцент2: '#2F7BE8', текст: '#FFFFFF', текст2: '#CDEBE3', логотип: 'светлый' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/333934146/detail.aspx',
