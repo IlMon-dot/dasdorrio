@@ -37,9 +37,12 @@
     s.setProperty('--bg', p.фон); s.setProperty('--bg2', p.фон2);
     s.setProperty('--accent', p.акцент); s.setProperty('--accent2', p.акцент2);
     s.setProperty('--fg', p.текст); s.setProperty('--fg2', p.текст2);
-    var link = document.createElement('link');
-    link.rel = 'preload'; link.as = 'image'; link.href = first.герой;
-    document.head.appendChild(link);
+    [first.сцена, first.герой].forEach(function (src) {
+      if (!src) return;
+      var link = document.createElement('link');
+      link.rel = 'preload'; link.as = 'image'; link.href = src;
+      document.head.appendChild(link);
+    });
   })();
 </script>
 
@@ -52,6 +55,8 @@
     /* Форма и ритм */
     --pill-h:52px; --thumb:60px; --rail-gap:10px; --rail-inset:8px; --rail-pad:12px;
     --gutter:20px;
+    /* Кадр сцены: квадратная картинка, которая накрывает экран; центр задаёт скрипт */
+    --cover-size:100vw; --cover-cx:48%;
     --font-display:"Unbounded", "Arial Black", system-ui, sans-serif;
     --font-text:"Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --ease-out:cubic-bezier(.16,1,.3,1);
@@ -71,30 +76,50 @@
   img{max-width:100%; height:auto; display:block}
   a{color:inherit}
 
-  /* Сцена: под палитрой — картинка мира товара, поверх — тон палитры (внизу сплошной, там текст) */
+  /* Сцена: одна цельная картинка мира товара. Товар вырезан из неё же и лежит ровно на своём месте,
+     чтобы его можно было анимировать; под ним фон дорисован. */
   .scene{
     position:relative; min-height:100vh; min-height:100dvh; overflow:hidden;
     background:var(--bg);
   }
-  .backdrops{position:absolute; inset:0; z-index:0}
-  .backdrop{
-    position:absolute; inset:0; opacity:0;
-    background-size:cover; background-position:center 60%; background-repeat:no-repeat;
+  .cover{position:absolute; inset:0; z-index:0; overflow:hidden}
+  .layer{position:absolute; inset:0; opacity:0}
+  .layer .blur{
+    position:absolute; inset:-8%;
+    background-size:cover; background-position:center;
+    filter:blur(30px) brightness(.86); transform:translateZ(0);
+  }
+  .layer .frame{
+    position:absolute; left:var(--cover-cx); top:var(--cover-cy, 50%);
+    width:var(--cover-size); height:var(--cover-size);
+    transform:translate(-50%,-50%);
+  }
+  .layer .frame img.bg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  /* на телефоне кадр уже экрана по высоте: верх и низ мягко уходят в размытую заливку */
+  .layer .frame{
+    -webkit-mask-image:linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+    mask-image:linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  }
+  .layer .frame img.hero{
+    position:absolute; left:var(--hx); top:var(--hy); width:var(--hw); height:auto;
+    will-change:transform;
+  }
+  .layer .frame .shadow{
+    position:absolute; left:var(--sx); top:var(--sy); width:var(--sw); height:var(--sh);
+    background:radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.35), rgba(0,0,0,0) 72%);
+    transform-origin:center; pointer-events:none;
   }
   .tint{
     position:absolute; inset:0; z-index:1; pointer-events:none;
-    background:
-      radial-gradient(90% 55% at 50% 100%, var(--bg2) 0%, transparent 70%),
-      linear-gradient(to top, var(--bg) 0%, var(--bg) 8%, rgba(0,0,0,0) 100%);
+    background:linear-gradient(to top, var(--bg) 0%, var(--bg) 6%, rgba(0,0,0,0) 100%);
   }
   @supports (background: color-mix(in srgb, red 50%, transparent)){
     .tint{
       background:
-        radial-gradient(90% 55% at 50% 100%, color-mix(in srgb, var(--bg2) 85%, transparent) 0%, transparent 70%),
-        linear-gradient(to top, var(--bg) 0%, var(--bg) 6%, color-mix(in srgb, var(--bg) 82%, transparent) 30%, color-mix(in srgb, var(--bg) 45%, transparent) 62%, color-mix(in srgb, var(--bg) 30%, transparent) 100%);
+        linear-gradient(to top, var(--bg) 0%, var(--bg) 4%, color-mix(in srgb, var(--bg) 80%, transparent) 22%, color-mix(in srgb, var(--bg) 35%, transparent) 46%, rgba(0,0,0,0) 62%),
+        linear-gradient(to bottom, color-mix(in srgb, var(--bg) 45%, transparent) 0%, rgba(0,0,0,0) 22%);
     }
   }
-  .stage, .foot{position:relative; z-index:2}
 
   .top{
     position:absolute; inset:0 auto auto 0; z-index:5;
@@ -109,41 +134,18 @@
     display:grid; grid-template-rows:1fr auto;
     padding:calc(72px + env(safe-area-inset-top)) var(--gutter) calc(20px + env(safe-area-inset-bottom));
   }
-
-  /* Подиум: герой + декор. Справа оставляем место под ленту */
+  /* Подиум пустой: это место в кадре, где стоит товар; по его центру выставляется кадр и лента */
   .podium{
-    position:relative; min-height:300px;
+    position:relative; min-height:280px;
     margin-right:calc(var(--thumb) + var(--rail-inset) + 12px);
   }
-  .hero{
-    position:absolute; inset:0; margin:0;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .hero img{
-    position:absolute; left:4%; top:5%; width:92%; height:90%;
-    object-fit:contain; object-position:center;
-    will-change:transform;
-  }
-  .hero-shadow{
-    position:absolute; left:50%; bottom:var(--shadow-b, 4%); width:var(--shadow-w, 70%); height:9%;
-    transform:translateX(-50%);
-    background:radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.42), rgba(0,0,0,0) 72%);
-    pointer-events:none; transition:bottom .4s var(--ease-out), width .4s var(--ease-out);
-  }
-  .decor{position:absolute; inset:0; pointer-events:none}
-  .decor img{position:absolute; width:var(--w); height:auto; filter:drop-shadow(0 6px 8px rgba(0,0,0,.16))}
-  /* Пять гнёзд для летающих деталей */
-  .decor img:nth-child(1){--w:22%; left:0%; top:16%}
-  .decor img:nth-child(2){--w:19%; right:0%; top:9%}
-  .decor img:nth-child(3){--w:18%; left:1%; bottom:10%}
-  .decor img:nth-child(4){--w:16%; right:2%; bottom:14%}
-  .decor img:nth-child(5){--w:13%; left:46%; top:1%}
 
   .copy{padding-top:14px}
   h1{
     font-family:var(--font-display); font-weight:800;
     font-size:clamp(23px, 6.4vw, 34px); line-height:1.06; letter-spacing:-0.02em;
     margin:0; text-wrap:balance; hyphens:manual; overflow-wrap:normal;
+    text-shadow:0 2px 18px rgba(0,0,0,.18);
   }
   .short{margin:8px 0 0; color:var(--fg2); font-size:15px; max-width:34ch}
 
@@ -202,7 +204,7 @@
   .rail button:focus-visible{outline-offset:4px}
 
   .foot{
-    position:absolute; left:var(--gutter); bottom:calc(10px + env(safe-area-inset-bottom));
+    position:absolute; left:var(--gutter); bottom:calc(10px + env(safe-area-inset-bottom)); z-index:2;
     margin:0; font-size:14px; color:var(--fg2); display:none;
   }
 
@@ -211,21 +213,22 @@
     :root{--thumb:50px; --rail-gap:8px}
   }
 
-  /* Десктоп: название слева, товар по центру, лента справа */
+  /* Десктоп: постер — картинка во всю ширину, название и таблетки внизу слева, лента справа */
   @media (min-width:900px){
-    :root{--thumb:76px; --rail-gap:14px; --rail-inset:26px; --gutter:56px}
+    :root{--thumb:76px; --rail-gap:14px; --rail-inset:26px; --gutter:56px; --cover-size:min(112dvh, 100vw); --cover-cx:60%}
     .logo img{width:168px}
     .top{padding-top:26px}
+    .layer .frame{
+      -webkit-mask-image:linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+      mask-image:linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+    }
     .stage{
-      grid-template-rows:none; grid-template-columns:minmax(340px, 11fr) minmax(0, 13fr);
-      align-items:center; column-gap:24px;
-      padding:110px calc(var(--thumb) + var(--rail-inset) + 44px) 60px var(--gutter);
+      padding:100px calc(var(--thumb) + var(--rail-inset) + 44px) 44px var(--gutter);
       min-height:100dvh;
     }
-    .podium{order:2; min-height:min(72vh, 760px); margin-right:0}
-    .hero img{left:5%; top:6%; width:90%; height:88%}
-    .copy{order:1; padding-top:0}
-    h1{font-size:clamp(34px, 3.4vw, 54px)}
+    .podium{min-height:min(38vh, 400px); margin-right:0}
+    .copy{padding-top:0; max-width:540px}
+    h1{font-size:clamp(30px, 3vw, 46px)}
     .short{font-size:18px; margin-top:14px}
     .pills{margin-top:28px; gap:12px}
     .pill{height:56px; padding:0 24px 0 22px; font-size:17px}
@@ -242,7 +245,7 @@
 </head>
 <body>
 <div class="scene" id="scene">
-  <div class="backdrops" id="backdrops" aria-hidden="true"></div>
+  <div class="cover" id="cover" aria-hidden="true"></div>
   <div class="tint" aria-hidden="true"></div>
   <header class="top">
     <a class="logo" href="#" id="logo-link" aria-label="Dasdorrio — в начало">
@@ -251,11 +254,7 @@
   </header>
 
   <main class="stage">
-    <div class="podium">
-      <div class="hero-shadow" aria-hidden="true"></div>
-      <div class="decor" id="decor" aria-hidden="true"></div>
-      <figure class="hero" id="hero-box"></figure>
-    </div>
+    <div class="podium" id="podium"></div>
     <div class="copy" id="copy">
       <h1 id="title"></h1>
       <p class="short" id="short"></p>
@@ -274,8 +273,9 @@
   'use strict';
   var items = ТОВАРЫ;
   var root = document.documentElement;
-  var heroBox = document.getElementById('hero-box');
-  var decorBox = document.getElementById('decor');
+  var cover = document.getElementById('cover');
+  var podium = document.getElementById('podium');
+  var scene = document.getElementById('scene');
   var titleEl = document.getElementById('title');
   var shortEl = document.getElementById('short');
   var pillsEl = document.getElementById('pills');
@@ -283,16 +283,6 @@
   var logo = document.getElementById('logo');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
   var current = -1, tl = null, floaters = [], gen = 0;
-
-  /* Убирает героев и декор чужих поколений: защита от быстрых тапов, когда таймлайн убит до onComplete */
-  function sweep(keepGen, instant) {
-    var all = Array.prototype.slice.call(heroBox.querySelectorAll('img')).concat(Array.prototype.slice.call(decorBox.children));
-    all.forEach(function (el) {
-      var g = +el.dataset.gen || 0;
-      if (g === keepGen) return;
-      if (instant || g < keepGen - 1) { el.remove(); }
-    });
-  }
   var hasGsap = typeof gsap !== 'undefined';
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -312,7 +302,7 @@
     b.type = 'button';
     b.style.setProperty('--c', t.палитра.фон);
     b.setAttribute('aria-label', t.название);
-    b.innerHTML = '<img src="' + esc(t.миниатюра) + '" alt="" width="160" height="160">';
+    b.innerHTML = '<img src="' + esc(t.миниатюра) + '" alt="" width="200" height="200">';
     b.addEventListener('click', function () { show(i, true); });
     rail.appendChild(b);
   });
@@ -353,6 +343,7 @@
 
   function preload(src) {
     return new Promise(function (res) {
+      if (!src) { res(null); return; }
       var im = new Image();
       im.onload = im.onerror = function () { res(im); };
       im.src = src;
@@ -360,61 +351,74 @@
     });
   }
 
-  var backdrops = document.getElementById('backdrops');
-  function setBackdrop(t, animate) {
-    var old = Array.prototype.slice.call(backdrops.children);
-    var done = function () { old.forEach(function (d) { d.remove(); }); };
-    if (!t.сцена) {
-      if (hasGsap && animate && !reduce && old.length) gsap.to(old, { opacity: 0, duration: .5, onComplete: done }); else done();
-      return;
+  /* Слой сцены: размытая заливка + кадр с фоном, героем на своём месте и тенью под ним */
+  function buildLayer(t, g) {
+    var box = t.геройБокс || [0.3, 0.3, 0.4, 0.4];
+    var layer = document.createElement('div');
+    layer.className = 'layer'; layer.dataset.gen = g;
+    var blur = document.createElement('div'); blur.className = 'blur';
+    if (t.сцена) blur.style.backgroundImage = 'url("' + t.сцена + '")';
+    var frame = document.createElement('div'); frame.className = 'frame';
+    if (t.сцена) {
+      var bg = document.createElement('img'); bg.className = 'bg'; bg.src = t.сцена; bg.alt = '';
+      frame.appendChild(bg);
     }
-    preload(t.сцена).then(function () {
-      if (items[current] !== t) return;
-      var d = document.createElement('div');
-      d.className = 'backdrop'; d.style.backgroundImage = 'url("' + t.сцена + '")';
-      backdrops.appendChild(d);
-      if (hasGsap && !reduce) {
-        gsap.to(d, { opacity: 1, duration: animate ? .9 : .6, ease: 'power2.out' });
-        if (old.length) gsap.to(old, { opacity: 0, duration: .7, delay: .2, onComplete: done });
-      } else { d.style.opacity = 1; done(); }
-    });
+    var shadow = document.createElement('div'); shadow.className = 'shadow';
+    shadow.style.setProperty('--sx', (box[0] + box[2] * 0.08) * 100 + '%');
+    shadow.style.setProperty('--sw', box[2] * 0.84 * 100 + '%');
+    shadow.style.setProperty('--sy', (box[1] + box[3] * 0.93) * 100 + '%');
+    shadow.style.setProperty('--sh', box[3] * 0.12 * 100 + '%');
+    frame.appendChild(shadow);
+    var hero = document.createElement('img'); hero.className = 'hero';
+    hero.src = t.герой; hero.alt = t.название; hero.setAttribute('fetchpriority', 'high');
+    hero.style.setProperty('--hx', box[0] * 100 + '%');
+    hero.style.setProperty('--hy', box[1] * 100 + '%');
+    hero.style.setProperty('--hw', box[2] * 100 + '%');
+    frame.appendChild(hero);
+    layer.appendChild(blur); layer.appendChild(frame);
+    return { layer: layer, frame: frame, hero: hero, shadow: shadow };
   }
 
-  var shadowEl = document.querySelector('.hero-shadow');
-  function placeShadow(img) {
-    if (!img || !img.naturalWidth) return;
-    var box = heroBox.getBoundingClientRect();
-    var bw = box.width * .92, bh = box.height * .90;
-    var k = Math.min(bw / img.naturalWidth, bh / img.naturalHeight);
-    var h = img.naturalHeight * k, w = img.naturalWidth * k;
-    var bottomPx = box.height * .05 + (bh - h) / 2 - h * .03;
-    shadowEl.style.setProperty('--shadow-b', Math.round(bottomPx) + 'px');
-    shadowEl.style.setProperty('--shadow-w', Math.round(Math.min(w * .9, box.width)) + 'px');
+  /* Кадр выставляется так, чтобы центр товара совпал с центром подиума */
+  function placeCover(t) {
+    var box = t.геройБокс || [0.3, 0.3, 0.4, 0.4];
+    var sceneTop = scene.getBoundingClientRect().top;
+    var r = podium.getBoundingClientRect();
+    var podiumCy = r.top - sceneTop + r.height / 2;
+    var frame = cover.querySelector('.frame');
+    var size = frame ? frame.offsetHeight : Math.max(window.innerWidth, window.innerHeight);
+    var pc = box[1] + box[3] / 2;
+    var cy = podiumCy - (pc - 0.5) * size;
+    root.style.setProperty('--cover-cy', Math.round(cy) + 'px');
   }
-  var podium = document.querySelector('.podium');
   function placeRail() {
-    var sceneTop = document.getElementById('scene').getBoundingClientRect().top;
+    var sceneTop = scene.getBoundingClientRect().top;
     var r = podium.getBoundingClientRect();
     rail.style.setProperty('--rail-top', Math.round(r.top - sceneTop + r.height / 2) + 'px');
   }
-  function relayout() { placeShadow(heroBox.querySelector('img')); placeRail(); }
+  function relayout() { if (current >= 0) placeCover(items[current]); placeRail(); }
   window.addEventListener('resize', relayout);
   if (window.ResizeObserver) { new ResizeObserver(relayout).observe(podium); }
   if (document.fonts && document.fonts.ready) { document.fonts.ready.then(relayout); }
 
-  function killFloat() {
-    floaters.forEach(function (f) { f.kill(); });
-    floaters = [];
-  }
-  function startFloat(heroImg, decorImgs) {
-    if (!hasGsap || reduce) return;
-    floaters.push(gsap.to(heroImg, { y: -8, duration: 3.2, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
-    decorImgs.forEach(function (d, i) {
-      floaters.push(gsap.to(d, {
-        y: (i % 2 ? 10 : -12), rotation: (i % 2 ? -4 : 4),
-        duration: 2.6 + i * 0.45, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: i * 0.2
-      }));
+  /* Убирает слои чужих поколений: защита от быстрых тапов, когда таймлайн убит до onComplete */
+  function sweep(keepGen, instant) {
+    Array.prototype.slice.call(cover.children).forEach(function (el) {
+      var g = +el.dataset.gen || 0;
+      if (g === keepGen) return;
+      if (instant || g < keepGen - 1) el.remove();
     });
+  }
+  function killFloat() { floaters.forEach(function (f) { f.kill(); }); floaters = []; }
+  /* Покой: товар мягко подпрыгивает над своим местом, тень под ним сжимается */
+  function startFloat(hero, shadow) {
+    if (!hasGsap || reduce) return;
+    var bounce = gsap.timeline({ repeat: -1, repeatDelay: 1.6 });
+    bounce.to(hero, { y: -14, duration: .42, ease: 'power2.out' })
+          .to(shadow, { scale: .86, opacity: .7, duration: .42, ease: 'power2.out' }, 0)
+          .to(hero, { y: 0, duration: .5, ease: 'bounce.out' })
+          .to(shadow, { scale: 1, opacity: 1, duration: .3, ease: 'power2.in' }, '-=.5');
+    floaters.push(bounce);
   }
 
   function show(i, animate) {
@@ -423,9 +427,7 @@
     var dir = i > current ? 1 : -1;
     gen += 1;
     var myGen = gen;
-    sweep(myGen);                                    // всё старше предыдущего поколения — прочь сразу
-    var prevHero = heroBox.querySelector('img');
-    var prevDecor = Array.prototype.slice.call(decorBox.children);
+    sweep(myGen);
     current = i;
 
     Array.prototype.forEach.call(rail.children, function (b, k) {
@@ -437,23 +439,16 @@
 
     setPalette(t.палитра, animate);
 
-    preload(t.герой).then(function () {
+    Promise.all([preload(t.герой), preload(t.сцена)]).then(function () {
       if (current !== i) return;               // успели нажать другое — этот кадр пропускаем
-      setBackdrop(t, animate);                 // фон грузится после героя, чтобы не тормозить главное
       if (tl) tl.kill();
       killFloat();
 
-      var heroImg = document.createElement('img');
-      heroImg.src = t.герой; heroImg.alt = t.название; heroImg.dataset.gen = myGen;
-      heroImg.setAttribute('fetchpriority', 'high');
-      heroBox.appendChild(heroImg);
-      placeShadow(heroImg);
-
-      var decorImgs = (t.декор || []).slice(0, 5).map(function (src) {
-        var im = document.createElement('img'); im.src = src; im.alt = ''; im.dataset.gen = myGen; decorBox.appendChild(im); return im;
-      });
-      /* через секунду после смены на сцене не должно остаться ничего чужого, даже если анимацию прервали */
-      setTimeout(function () { if (gen === myGen) sweep(myGen, true); }, 1000);
+      var old = Array.prototype.slice.call(cover.children);
+      var L = buildLayer(t, myGen);
+      cover.appendChild(L.layer);
+      placeCover(t);
+      setTimeout(function () { if (gen === myGen) sweep(myGen, true); }, 1200);
 
       titleEl.textContent = t.название;
       shortEl.textContent = t.коротко || '';
@@ -461,42 +456,38 @@
       placeRail();
       var pills = Array.prototype.slice.call(pillsEl.children);
       var copyBits = [titleEl, shortEl];
+      var removeOld = function () { old.forEach(function (d) { d.remove(); }); };
 
       if (!hasGsap || !animate) {
-        if (prevHero) prevHero.remove();
-        prevDecor.forEach(function (d) { d.remove(); });
+        removeOld();
+        L.layer.style.opacity = 1;
         if (hasGsap && !reduce) {
-          gsap.from(heroImg, { y: 30, opacity: 0, scale: .96, duration: .7, ease: 'power3.out' });
-          gsap.from(decorImgs, { scale: 0, opacity: 0, duration: .6, ease: 'back.out(1.7)', stagger: .06, delay: .15 });
+          gsap.from(L.hero, { y: 36, opacity: 0, scale: .96, duration: .8, ease: 'power3.out' });
           gsap.from(copyBits, { y: 16, opacity: 0, duration: .5, ease: 'power2.out', stagger: .06, delay: .1 });
           gsap.from(pills, { y: 14, opacity: 0, duration: .45, ease: 'back.out(1.6)', stagger: .05, delay: .25 });
         }
-        startFloat(heroImg, decorImgs);
+        startFloat(L.hero, L.shadow);
         return;
       }
 
       if (reduce) {
         tl = gsap.timeline();
-        if (prevHero) tl.to(prevHero, { opacity: 0, duration: .25, onComplete: function () { prevHero.remove(); } }, 0);
-        if (prevDecor.length) tl.to(prevDecor, { opacity: 0, duration: .25, onComplete: function () { prevDecor.forEach(function (d) { d.remove(); }); } }, 0);
-        tl.from(heroImg, { opacity: 0, duration: .35 }, .2)
-          .from(decorImgs, { opacity: 0, duration: .35 }, .2)
-          .from(copyBits.concat(pills), { opacity: 0, duration: .35 }, .2);
+        tl.to(L.layer, { opacity: 1, duration: .4 }, 0);
+        if (old.length) tl.to(old, { opacity: 0, duration: .4, onComplete: removeOld }, 0);
+        tl.from(copyBits.concat(pills), { opacity: 0, duration: .35 }, .1);
         return;
       }
 
       tl = gsap.timeline({ defaults: { overwrite: 'auto' } });
-      /* старый герой улетает в сторону, старый декор схлопывается */
-      if (prevHero) tl.to(prevHero, { x: -dir * 140, opacity: 0, rotation: -dir * 6, scale: .92, duration: .38, ease: 'power2.in', onComplete: function () { prevHero.remove(); } }, 0);
-      if (prevDecor.length) tl.to(prevDecor, { scale: 0, opacity: 0, duration: .28, ease: 'power2.in', stagger: .03, onComplete: function () { prevDecor.forEach(function (d) { d.remove(); }); } }, 0);
-      tl.to(copyBits, { y: -10, opacity: 0, duration: .22, ease: 'power2.in' }, 0);
-
-      /* новый влетает с другой стороны, декор выпрыгивает, текст и таблетки поднимаются */
-      tl.fromTo(heroImg, { x: dir * 160, opacity: 0, rotation: dir * 6, scale: .92 }, { x: 0, opacity: 1, rotation: 0, scale: 1, duration: .62, ease: 'power3.out' }, .22)
-        .fromTo(decorImgs, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .55, ease: 'back.out(1.8)', stagger: .06 }, .38)
+      /* новая сцена проявляется поверх старой, товар приподнимается на место, текст и таблетки поднимаются */
+      tl.to(L.layer, { opacity: 1, duration: .75, ease: 'power2.out' }, 0)
+        .fromTo(L.hero, { y: 48 * dir, opacity: 0, scale: .94 }, { y: 0, opacity: 1, scale: 1, duration: .7, ease: 'power3.out' }, .12)
+        .fromTo(L.shadow, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'power2.out' }, .2)
+        .to(copyBits, { y: -10, opacity: 0, duration: .22, ease: 'power2.in' }, 0)
         .fromTo(copyBits, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .45, ease: 'power2.out', stagger: .06 }, .3)
         .fromTo(pills, { y: 16, opacity: 0, scale: .96 }, { y: 0, opacity: 1, scale: 1, duration: .45, ease: 'back.out(1.6)', stagger: .05 }, .38)
-        .add(function () { startFloat(heroImg, decorImgs); });
+        .add(function () { removeOld(); startFloat(L.hero, L.shadow); }, .8);
+      if (old.length) tl.to(old, { opacity: 0, duration: .5, ease: 'power2.in' }, .3);
     });
   }
 
