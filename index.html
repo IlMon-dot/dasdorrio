@@ -30,6 +30,7 @@
 <script>
   /* Красим страницу в палитру первого товара до первой отрисовки — без вспышки белого. */
   (function () {
+    if (typeof ТОВАРЫ === 'undefined') return;
     var key = (location.hash || '').slice(1);
     var first = ТОВАРЫ.find(function (t) { return t.ключ === key; }) || ТОВАРЫ[0];
     var p = first.палитра, s = document.documentElement.style;
@@ -70,13 +71,30 @@
   img{max-width:100%; height:auto; display:block}
   a{color:inherit}
 
-  /* Сцена: свет из-под товара, тень в углах */
+  /* Сцена: под палитрой — картинка мира товара, поверх — тон палитры (внизу сплошной, там текст) */
   .scene{
-    position:relative; min-height:100vh; min-height:100dvh;
+    position:relative; min-height:100vh; min-height:100dvh; overflow:hidden;
+    background:var(--bg);
+  }
+  .backdrops{position:absolute; inset:0; z-index:0}
+  .backdrop{
+    position:absolute; inset:0; opacity:0;
+    background-size:cover; background-position:center 60%; background-repeat:no-repeat;
+  }
+  .tint{
+    position:absolute; inset:0; z-index:1; pointer-events:none;
     background:
       radial-gradient(90% 55% at 50% 100%, var(--bg2) 0%, transparent 70%),
-      var(--bg);
+      linear-gradient(to top, var(--bg) 0%, var(--bg) 8%, rgba(0,0,0,0) 100%);
   }
+  @supports (background: color-mix(in srgb, red 50%, transparent)){
+    .tint{
+      background:
+        radial-gradient(90% 55% at 50% 100%, color-mix(in srgb, var(--bg2) 85%, transparent) 0%, transparent 70%),
+        linear-gradient(to top, var(--bg) 0%, var(--bg) 6%, color-mix(in srgb, var(--bg) 82%, transparent) 30%, color-mix(in srgb, var(--bg) 45%, transparent) 62%, color-mix(in srgb, var(--bg) 30%, transparent) 100%);
+    }
+  }
+  .stage, .foot{position:relative; z-index:2}
 
   .top{
     position:absolute; inset:0 auto auto 0; z-index:5;
@@ -87,6 +105,7 @@
 
   .stage{
     min-height:100vh; min-height:100dvh;
+    position:relative; z-index:2;
     display:grid; grid-template-rows:1fr auto;
     padding:calc(72px + env(safe-area-inset-top)) var(--gutter) calc(20px + env(safe-area-inset-bottom));
   }
@@ -129,24 +148,31 @@
   .short{margin:8px 0 0; color:var(--fg2); font-size:15px; max-width:34ch}
 
   .pills{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
+  /* Таблетки полупрозрачные, в тоне сцены: на тёмной сцене затемняют, на светлой — осветляют.
+     Площадку узнаём по цветной монетке слева. */
   .pill{
-    display:inline-flex; align-items:center; gap:8px;
-    height:var(--pill-h); padding:0 20px 0 18px; border-radius:999px;
+    display:inline-flex; align-items:center; gap:10px;
+    height:var(--pill-h); padding:0 20px 0 14px; border-radius:999px;
     font-weight:500; font-size:16px; text-decoration:none; white-space:nowrap;
-    color:#fff; background:var(--c, #333);
-    box-shadow:0 6px 14px -6px rgba(0,0,0,.45);
-    transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+    color:var(--fg); background:var(--pill-bg, rgba(0,0,0,.26));
+    border:1px solid var(--pill-line, rgba(255,255,255,.18));
+    box-shadow:0 6px 14px -10px rgba(0,0,0,.4);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    transition:transform .22s var(--ease-out), background-color .22s var(--ease-out), border-color .22s var(--ease-out);
     will-change:transform;
   }
-  .pill svg{width:16px; height:16px; flex:none}
+  .pill .coin{
+    width:12px; height:12px; border-radius:50%; flex:none; background:var(--c);
+    box-shadow:0 0 0 2px var(--pill-line, rgba(255,255,255,.18));
+  }
   .pill--wb{--c:var(--wb)}
   .pill--ozon{--c:var(--ozon)}
-  .pill--market{--c:var(--market); color:var(--market-ink)}
-  .pill--shop{--c:var(--fg); color:var(--bg)}
+  .pill--market{--c:var(--market)}
+  .pill--shop{--c:var(--accent)}
   @media (hover:hover){
-    .pill:hover{transform:translateY(-3px); box-shadow:0 12px 20px -8px rgba(0,0,0,.5)}
+    .pill:hover{transform:translateY(-3px); background:var(--pill-bg-hover, rgba(0,0,0,.4)); border-color:var(--pill-line-hover, rgba(255,255,255,.3))}
   }
-  .pill:active{transform:translateY(1px) scale(.97)}
+  .pill:active{transform:translateY(1px) scale(.97); background:var(--pill-bg-hover, rgba(0,0,0,.4))}
 
   /* Лента выбора: справа, под большой палец */
   .rail{
@@ -215,6 +241,8 @@
 </head>
 <body>
 <div class="scene" id="scene">
+  <div class="backdrops" id="backdrops" aria-hidden="true"></div>
+  <div class="tint" aria-hidden="true"></div>
   <header class="top">
     <a class="logo" href="#" id="logo-link" aria-label="Dasdorrio — в начало">
       <img id="logo" src="logo/dasdorrio-light.webp" width="340" height="171" alt="Dasdorrio">
@@ -253,7 +281,17 @@
   var rail = document.getElementById('rail');
   var logo = document.getElementById('logo');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
-  var current = -1, tl = null, floaters = [];
+  var current = -1, tl = null, floaters = [], gen = 0;
+
+  /* Убирает героев и декор чужих поколений: защита от быстрых тапов, когда таймлайн убит до onComplete */
+  function sweep(keepGen, instant) {
+    var all = Array.prototype.slice.call(heroBox.querySelectorAll('img')).concat(Array.prototype.slice.call(decorBox.children));
+    all.forEach(function (el) {
+      var g = +el.dataset.gen || 0;
+      if (g === keepGen) return;
+      if (instant || g < keepGen - 1) { el.remove(); }
+    });
+  }
   var hasGsap = typeof gsap !== 'undefined';
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -263,7 +301,7 @@
     market: { name: 'Яндекс Маркет', cls: 'pill--market' },
     shop:   { name: 'dasdorrio.ru', cls: 'pill--shop' }
   };
-  var ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12 12 4M6 4h6v6"/></svg>';
+  var COIN = '<span class="coin" aria-hidden="true"></span>';
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -293,7 +331,12 @@
       Object.keys(vars).forEach(function (k) { root.style.setProperty(k, vars[k]); });
     }
     themeMeta.setAttribute('content', p.фон);
-    logo.src = p.логотип === 'тёмный' ? 'logo/dasdorrio.webp' : 'logo/dasdorrio-light.webp';
+    var light = p.логотип === 'тёмный';            // светлая сцена -> тёмный логотип и тёмный текст
+    root.style.setProperty('--pill-bg', light ? 'rgba(255,255,255,.34)' : 'rgba(0,0,0,.26)');
+    root.style.setProperty('--pill-bg-hover', light ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.4)');
+    root.style.setProperty('--pill-line', light ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.2)');
+    root.style.setProperty('--pill-line-hover', light ? 'rgba(255,255,255,.8)' : 'rgba(255,255,255,.34)');
+    logo.src = light ? 'logo/dasdorrio.webp' : 'logo/dasdorrio-light.webp';
   }
 
   function buildPills(t) {
@@ -302,7 +345,7 @@
       var url = t.ссылки && t.ссылки[k];
       if (!url) return;
       html += '<a class="pill ' + PLACES[k].cls + '" href="' + esc(url) + '" rel="noopener" data-place="' + k + '" data-product="' + esc(t.ключ) + '">' +
-              '<span>' + PLACES[k].name + '</span>' + ARROW + '</a>';
+              COIN + '<span>' + PLACES[k].name + '</span></a>';
     });
     pillsEl.innerHTML = html;
   }
@@ -313,6 +356,26 @@
       im.onload = im.onerror = function () { res(im); };
       im.src = src;
       if (im.decode) { im.decode().then(function () { res(im); }, function () { res(im); }); }
+    });
+  }
+
+  var backdrops = document.getElementById('backdrops');
+  function setBackdrop(t, animate) {
+    var old = Array.prototype.slice.call(backdrops.children);
+    var done = function () { old.forEach(function (d) { d.remove(); }); };
+    if (!t.сцена) {
+      if (hasGsap && animate && !reduce && old.length) gsap.to(old, { opacity: 0, duration: .5, onComplete: done }); else done();
+      return;
+    }
+    preload(t.сцена).then(function () {
+      if (items[current] !== t) return;
+      var d = document.createElement('div');
+      d.className = 'backdrop'; d.style.backgroundImage = 'url("' + t.сцена + '")';
+      backdrops.appendChild(d);
+      if (hasGsap && !reduce) {
+        gsap.to(d, { opacity: 1, duration: animate ? .9 : .6, ease: 'power2.out' });
+        if (old.length) gsap.to(old, { opacity: 0, duration: .7, delay: .2, onComplete: done });
+      } else { d.style.opacity = 1; done(); }
     });
   }
 
@@ -357,6 +420,9 @@
     if (i === current) return;
     var t = items[i];
     var dir = i > current ? 1 : -1;
+    gen += 1;
+    var myGen = gen;
+    sweep(myGen);                                    // всё старше предыдущего поколения — прочь сразу
     var prevHero = heroBox.querySelector('img');
     var prevDecor = Array.prototype.slice.call(decorBox.children);
     current = i;
@@ -365,25 +431,28 @@
       if (k === i) { b.setAttribute('aria-current', 'true'); b.scrollIntoView({ block: 'nearest', behavior: animate ? 'smooth' : 'auto' }); }
       else b.removeAttribute('aria-current');
     });
-    if (history.replaceState) history.replaceState(null, '', '#' + t.ключ);
+    try { history.replaceState(null, '', '#' + t.ключ); } catch (e) { /* file:// не даёт менять адрес — не страшно */ }
     if (current >= 0 && animate) track.view(t);
 
     setPalette(t.палитра, animate);
 
     preload(t.герой).then(function () {
       if (current !== i) return;               // успели нажать другое — этот кадр пропускаем
+      setBackdrop(t, animate);                 // фон грузится после героя, чтобы не тормозить главное
       if (tl) tl.kill();
       killFloat();
 
       var heroImg = document.createElement('img');
-      heroImg.src = t.герой; heroImg.alt = t.название;
+      heroImg.src = t.герой; heroImg.alt = t.название; heroImg.dataset.gen = myGen;
       heroImg.setAttribute('fetchpriority', 'high');
       heroBox.appendChild(heroImg);
       placeShadow(heroImg);
 
       var decorImgs = (t.декор || []).slice(0, 5).map(function (src) {
-        var im = document.createElement('img'); im.src = src; im.alt = ''; decorBox.appendChild(im); return im;
+        var im = document.createElement('img'); im.src = src; im.alt = ''; im.dataset.gen = myGen; decorBox.appendChild(im); return im;
       });
+      /* через секунду после смены на сцене не должно остаться ничего чужого, даже если анимацию прервали */
+      setTimeout(function () { if (gen === myGen) sweep(myGen, true); }, 1000);
 
       titleEl.textContent = t.название;
       shortEl.textContent = t.коротко || '';
