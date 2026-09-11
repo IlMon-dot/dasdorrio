@@ -1,0 +1,21 @@
+# Бизнес-контекст, исходники и рабочие файлы агента — локальные, не публикуем
+.business/
+Исходники/
+.claude/
+plans/
+CLAUDE.md
+STARTER.md
+*.mp4
+
+# Секреты
+.env
+*.local
+
+# Зависимости и сборка
+node_modules/
+dist/
+build/
+
+# Системное
+.DS_Store
+Thumbs.db

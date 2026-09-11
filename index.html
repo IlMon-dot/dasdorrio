@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dasdorrio — товары из роликов и где их купить</title>
+<meta name="description" content="Товары Dasdorrio из роликов: багги на радиоуправлении, реактивные машинки, Wi-Fi адаптер. Прямые ссылки на карточки Wildberries, Ozon и магазин.">
+<meta name="theme-color" content="#1B2620">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dasdorrio — товары из роликов и где их купить">
+<meta property="og:description" content="Выбери товар и открой его карточку на Wildberries, Ozon или в магазине.">
+<meta property="og:image" content="https://ilmon-dot.github.io/dasdorrio/photo/og.jpg">
+<meta property="og:url" content="https://ilmon-dot.github.io/dasdorrio/">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230B5FA8'/%3E%3Cpath d='M20 6c-6 2-11 8-9 15 1 3 4 5 8 5-4-3-5-8-2-12 1-2 4-4 8-4-1-2-3-4-5-4z' fill='%23fff'/%3E%3Ccircle cx='22' cy='9' r='2.6' fill='%23E5273A'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Onest:wght@500&display=swap">
+
+<script src="products.js"></script>
+<script>
+  /* Яндекс.Метрика: после создания счётчика на metrika.yandex.ru вписать его номер вместо 0.
+     Пока 0 — счётчик не подключается и страницу не замедляет. */
+  var METRIKA_ID = 0;
+</script>
+<script>
+  /* Красим страницу в палитру первого товара до первой отрисовки — без вспышки белого. */
+  (function () {
+    var key = (location.hash || '').slice(1);
+    var first = ТОВАРЫ.find(function (t) { return t.ключ === key; }) || ТОВАРЫ[0];
+    var p = first.палитра, s = document.documentElement.style;
+    s.setProperty('--bg', p.фон); s.setProperty('--bg2', p.фон2);
+    s.setProperty('--accent', p.акцент); s.setProperty('--accent2', p.акцент2);
+    s.setProperty('--fg', p.текст); s.setProperty('--fg2', p.текст2);
+    var link = document.createElement('link');
+    link.rel = 'preload'; link.as = 'image'; link.href = first.герой;
+    document.head.appendChild(link);
+  })();
+</script>
+
+<style>
+  :root{
+    /* Палитра сцены — подставляется из products.js */
+    --bg:#1B2620; --bg2:#0F1915; --accent:#B8F53C; --accent2:#FFD400; --fg:#F4F8F2; --fg2:#A8BDB0;
+    /* Цвета площадок — не меняются, это узнавание */
+    --wb:#CB11AB; --ozon:#005BFF; --market:#FFCC00; --market-ink:#111111;
+    /* Форма и ритм */
+    --pill-h:52px; --thumb:56px; --rail-gap:10px; --rail-inset:10px;
+    --gutter:20px;
+    --font-display:"Unbounded", "Arial Black", system-ui, sans-serif;
+    --font-text:"Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --ease-out:cubic-bezier(.16,1,.3,1);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%; background:var(--bg)}
+  body{
+    margin:0; min-height:100vh; min-height:100dvh;
+    background:var(--bg); color:var(--fg);
+    font-family:var(--font-text); font-size:16px; line-height:1.45;
+    -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--accent); color:var(--bg)}
+  :focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:999px}
+  img{max-width:100%; height:auto; display:block}
+  a{color:inherit}
+
+  /* Сцена: свет из-под товара, тень в углах */
+  .scene{
+    position:relative; min-height:100vh; min-height:100dvh;
+    background:
+      radial-gradient(90% 55% at 50% 100%, var(--bg2) 0%, transparent 70%),
+      var(--bg);
+  }
+
+  .top{
+    position:absolute; inset:0 auto auto 0; z-index:5;
+    padding:calc(14px + env(safe-area-inset-top)) var(--gutter) 0;
+  }
+  .logo{display:inline-block; line-height:0}
+  .logo img{width:118px; height:auto}
+
+  .stage{
+    min-height:100vh; min-height:100dvh;
+    display:grid; grid-template-rows:1fr auto;
+    padding:calc(72px + env(safe-area-inset-top)) var(--gutter) calc(20px + env(safe-area-inset-bottom));
+  }
+
+  /* Подиум: герой + декор. Справа оставляем место под ленту */
+  .podium{
+    position:relative; min-height:300px;
+    margin-right:calc(var(--thumb) + var(--rail-inset) + 10px);
+  }
+  .hero{
+    position:absolute; inset:0; margin:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .hero img{
+    position:absolute; left:4%; top:5%; width:92%; height:90%;
+    object-fit:contain; object-position:center;
+    will-change:transform;
+  }
+  .hero-shadow{
+    position:absolute; left:50%; bottom:var(--shadow-b, 4%); width:var(--shadow-w, 70%); height:9%;
+    transform:translateX(-50%);
+    background:radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.42), rgba(0,0,0,0) 72%);
+    pointer-events:none; transition:bottom .4s var(--ease-out), width .4s var(--ease-out);
+  }
+  .decor{position:absolute; inset:0; pointer-events:none}
+  .decor img{position:absolute; width:var(--w); height:auto; filter:drop-shadow(0 6px 8px rgba(0,0,0,.16))}
+  /* Пять гнёзд для летающих деталей */
+  .decor img:nth-child(1){--w:22%; left:0%; top:16%}
+  .decor img:nth-child(2){--w:19%; right:0%; top:9%}
+  .decor img:nth-child(3){--w:18%; left:1%; bottom:10%}
+  .decor img:nth-child(4){--w:16%; right:2%; bottom:14%}
+  .decor img:nth-child(5){--w:13%; left:46%; top:1%}
+
+  .copy{padding-top:14px}
+  h1{
+    font-family:var(--font-display); font-weight:800;
+    font-size:clamp(23px, 6.4vw, 34px); line-height:1.06; letter-spacing:-0.02em;
+    margin:0; text-wrap:balance; hyphens:manual; overflow-wrap:normal;
+  }
+  .short{margin:8px 0 0; color:var(--fg2); font-size:15px; max-width:34ch}
+
+  .pills{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px;
+    height:var(--pill-h); padding:0 20px 0 18px; border-radius:999px;
+    font-weight:500; font-size:16px; text-decoration:none; white-space:nowrap;
+    color:#fff; background:var(--c, #333);
+    box-shadow:0 6px 14px -6px rgba(0,0,0,.45);
+    transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+    will-change:transform;
+  }
+  .pill svg{width:16px; height:16px; flex:none}
+  .pill--wb{--c:var(--wb)}
+  .pill--ozon{--c:var(--ozon)}
+  .pill--market{--c:var(--market); color:var(--market-ink)}
+  .pill--shop{--c:var(--fg); color:var(--bg)}
+  @media (hover:hover){
+    .pill:hover{transform:translateY(-3px); box-shadow:0 12px 20px -8px rgba(0,0,0,.5)}
+  }
+  .pill:active{transform:translateY(1px) scale(.97)}
+
+  /* Лента выбора: справа, под большой палец */
+  .rail{
+    position:absolute; z-index:6;
+    right:max(var(--rail-inset), env(safe-area-inset-right));
+    top:var(--rail-top, 50%); transform:translateY(-50%);
+    transition:top .4s var(--ease-out);
+    display:flex; flex-direction:column; gap:var(--rail-gap);
+    max-height:calc(100dvh - 150px); overflow-y:auto; overscroll-behavior:contain;
+    padding:8px 4px; scrollbar-width:none; scroll-snap-type:y proximity;
+  }
+  .rail::-webkit-scrollbar{display:none}
+  .rail button{
+    width:var(--thumb); height:var(--thumb); flex:none; scroll-snap-align:center;
+    border:0; padding:0; border-radius:50%; cursor:pointer;
+    background:var(--c); display:grid; place-items:center;
+    box-shadow:0 4px 10px -4px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.18);
+    transition:transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .rail button img{width:76%; height:76%; object-fit:contain; pointer-events:none}
+  .rail button[aria-current="true"]{
+    transform:scale(1.14);
+    box-shadow:0 0 0 3px var(--bg), 0 0 0 6px var(--fg), 0 8px 16px -6px rgba(0,0,0,.6);
+  }
+  .rail button:focus-visible{outline-offset:4px}
+
+  .foot{
+    position:absolute; left:var(--gutter); bottom:calc(10px + env(safe-area-inset-bottom));
+    margin:0; font-size:14px; color:var(--fg2); display:none;
+  }
+
+  /* Низкие экраны: миниатюры компактнее, чтобы лента умещалась над текстом */
+  @media (max-height:700px) and (max-width:899px){
+    :root{--thumb:48px; --rail-gap:8px}
+  }
+
+  /* Десктоп: название слева, товар по центру, лента справа */
+  @media (min-width:900px){
+    :root{--thumb:72px; --rail-gap:14px; --rail-inset:28px; --gutter:56px}
+    .logo img{width:168px}
+    .top{padding-top:26px}
+    .stage{
+      grid-template-rows:none; grid-template-columns:minmax(340px, 11fr) minmax(0, 13fr);
+      align-items:center; column-gap:24px;
+      padding:110px calc(var(--thumb) + var(--rail-inset) + 40px) 60px var(--gutter);
+      min-height:100dvh;
+    }
+    .podium{order:2; min-height:min(72vh, 760px); margin-right:0}
+    .hero img{left:5%; top:6%; width:90%; height:88%}
+    .copy{order:1; padding-top:0}
+    h1{font-size:clamp(34px, 3.4vw, 54px)}
+    .short{font-size:18px; margin-top:14px}
+    .pills{margin-top:28px; gap:12px}
+    .pill{height:56px; padding:0 24px 0 22px; font-size:17px}
+    .foot{display:block}
+  }
+  @media (min-width:1600px){
+    h1{font-size:58px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .pill, .rail button{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="scene" id="scene">
+  <header class="top">
+    <a class="logo" href="#" id="logo-link" aria-label="Dasdorrio — в начало">
+      <img id="logo" src="logo/dasdorrio-light.webp" width="340" height="171" alt="Dasdorrio">
+    </a>
+  </header>
+
+  <main class="stage">
+    <div class="podium">
+      <div class="hero-shadow" aria-hidden="true"></div>
+      <div class="decor" id="decor" aria-hidden="true"></div>
+      <figure class="hero" id="hero-box"></figure>
+    </div>
+    <div class="copy" id="copy">
+      <h1 id="title"></h1>
+      <p class="short" id="short"></p>
+      <nav class="pills" id="pills" aria-label="Где купить"></nav>
+    </div>
+  </main>
+
+  <nav class="rail" id="rail" aria-label="Выбор товара"></nav>
+  <p class="foot">Товары продаются на маркетплейсах и в магазине — сайт только показывает, где.</p>
+  <noscript><p style="padding:20px">Для выбора товара нужен JavaScript. Все товары есть на Wildberries и Ozon по запросу «Dasdorrio».</p></noscript>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var items = ТОВАРЫ;
+  var root = document.documentElement;
+  var heroBox = document.getElementById('hero-box');
+  var decorBox = document.getElementById('decor');
+  var titleEl = document.getElementById('title');
+  var shortEl = document.getElementById('short');
+  var pillsEl = document.getElementById('pills');
+  var rail = document.getElementById('rail');
+  var logo = document.getElementById('logo');
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  var current = -1, tl = null, floaters = [];
+  var hasGsap = typeof gsap !== 'undefined';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var PLACES = {
+    wb:     { name: 'Wildberries', cls: 'pill--wb' },
+    ozon:   { name: 'Ozon',        cls: 'pill--ozon' },
+    market: { name: 'Яндекс Маркет', cls: 'pill--market' },
+    shop:   { name: 'dasdorrio.ru', cls: 'pill--shop' }
+  };
+  var ARROW = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12 12 4M6 4h6v6"/></svg>';
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* Лента миниатюр */
+  items.forEach(function (t, i) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.style.setProperty('--c', t.палитра.фон);
+    b.setAttribute('aria-label', t.название);
+    b.innerHTML = '<img src="' + esc(t.миниатюра) + '" alt="" width="160" height="160">';
+    b.addEventListener('click', function () { show(i, true); });
+    rail.appendChild(b);
+  });
+  rail.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    var next = (current + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    show(next, true);
+    rail.children[next].focus();
+  });
+
+  function setPalette(p, animate) {
+    var vars = { '--bg': p.фон, '--bg2': p.фон2, '--accent': p.акцент, '--accent2': p.акцент2, '--fg': p.текст, '--fg2': p.текст2 };
+    if (hasGsap && animate && !reduce) {
+      gsap.to(root, Object.assign({ duration: .6, ease: 'power2.inOut' }, vars));
+    } else {
+      Object.keys(vars).forEach(function (k) { root.style.setProperty(k, vars[k]); });
+    }
+    themeMeta.setAttribute('content', p.фон);
+    logo.src = p.логотип === 'тёмный' ? 'logo/dasdorrio.webp' : 'logo/dasdorrio-light.webp';
+  }
+
+  function buildPills(t) {
+    var html = '';
+    Object.keys(PLACES).forEach(function (k) {
+      var url = t.ссылки && t.ссылки[k];
+      if (!url) return;
+      html += '<a class="pill ' + PLACES[k].cls + '" href="' + esc(url) + '" rel="noopener" data-place="' + k + '" data-product="' + esc(t.ключ) + '">' +
+              '<span>' + PLACES[k].name + '</span>' + ARROW + '</a>';
+    });
+    pillsEl.innerHTML = html;
+  }
+
+  function preload(src) {
+    return new Promise(function (res) {
+      var im = new Image();
+      im.onload = im.onerror = function () { res(im); };
+      im.src = src;
+      if (im.decode) { im.decode().then(function () { res(im); }, function () { res(im); }); }
+    });
+  }
+
+  var shadowEl = document.querySelector('.hero-shadow');
+  function placeShadow(img) {
+    if (!img || !img.naturalWidth) return;
+    var box = heroBox.getBoundingClientRect();
+    var bw = box.width * .92, bh = box.height * .90;
+    var k = Math.min(bw / img.naturalWidth, bh / img.naturalHeight);
+    var h = img.naturalHeight * k, w = img.naturalWidth * k;
+    var bottomPx = box.height * .05 + (bh - h) / 2 - h * .03;
+    shadowEl.style.setProperty('--shadow-b', Math.round(bottomPx) + 'px');
+    shadowEl.style.setProperty('--shadow-w', Math.round(Math.min(w * .9, box.width)) + 'px');
+  }
+  var podium = document.querySelector('.podium');
+  function placeRail() {
+    var sceneTop = document.getElementById('scene').getBoundingClientRect().top;
+    var r = podium.getBoundingClientRect();
+    rail.style.setProperty('--rail-top', Math.round(r.top - sceneTop + r.height / 2) + 'px');
+  }
+  function relayout() { placeShadow(heroBox.querySelector('img')); placeRail(); }
+  window.addEventListener('resize', relayout);
+  if (window.ResizeObserver) { new ResizeObserver(relayout).observe(podium); }
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(relayout); }
+
+  function killFloat() {
+    floaters.forEach(function (f) { f.kill(); });
+    floaters = [];
+  }
+  function startFloat(heroImg, decorImgs) {
+    if (!hasGsap || reduce) return;
+    floaters.push(gsap.to(heroImg, { y: -8, duration: 3.2, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+    decorImgs.forEach(function (d, i) {
+      floaters.push(gsap.to(d, {
+        y: (i % 2 ? 10 : -12), rotation: (i % 2 ? -4 : 4),
+        duration: 2.6 + i * 0.45, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: i * 0.2
+      }));
+    });
+  }
+
+  function show(i, animate) {
+    if (i === current) return;
+    var t = items[i];
+    var dir = i > current ? 1 : -1;
+    var prevHero = heroBox.querySelector('img');
+    var prevDecor = Array.prototype.slice.call(decorBox.children);
+    current = i;
+
+    Array.prototype.forEach.call(rail.children, function (b, k) {
+      if (k === i) { b.setAttribute('aria-current', 'true'); b.scrollIntoView({ block: 'nearest', behavior: animate ? 'smooth' : 'auto' }); }
+      else b.removeAttribute('aria-current');
+    });
+    if (history.replaceState) history.replaceState(null, '', '#' + t.ключ);
+    if (current >= 0 && animate) track.view(t);
+
+    setPalette(t.палитра, animate);
+
+    preload(t.герой).then(function () {
+      if (current !== i) return;               // успели нажать другое — этот кадр пропускаем
+      if (tl) tl.kill();
+      killFloat();
+
+      var heroImg = document.createElement('img');
+      heroImg.src = t.герой; heroImg.alt = t.название;
+      heroImg.setAttribute('fetchpriority', 'high');
+      heroBox.appendChild(heroImg);
+      placeShadow(heroImg);
+
+      var decorImgs = (t.декор || []).slice(0, 5).map(function (src) {
+        var im = document.createElement('img'); im.src = src; im.alt = ''; decorBox.appendChild(im); return im;
+      });
+
+      titleEl.textContent = t.название;
+      shortEl.textContent = t.коротко || '';
+      buildPills(t);
+      placeRail();
+      var pills = Array.prototype.slice.call(pillsEl.children);
+      var copyBits = [titleEl, shortEl];
+
+      if (!hasGsap || !animate) {
+        if (prevHero) prevHero.remove();
+        prevDecor.forEach(function (d) { d.remove(); });
+        if (hasGsap && !reduce) {
+          gsap.from(heroImg, { y: 30, opacity: 0, scale: .96, duration: .7, ease: 'power3.out' });
+          gsap.from(decorImgs, { scale: 0, opacity: 0, duration: .6, ease: 'back.out(1.7)', stagger: .06, delay: .15 });
+          gsap.from(copyBits, { y: 16, opacity: 0, duration: .5, ease: 'power2.out', stagger: .06, delay: .1 });
+          gsap.from(pills, { y: 14, opacity: 0, duration: .45, ease: 'back.out(1.6)', stagger: .05, delay: .25 });
+        }
+        startFloat(heroImg, decorImgs);
+        return;
+      }
+
+      if (reduce) {
+        tl = gsap.timeline();
+        if (prevHero) tl.to(prevHero, { opacity: 0, duration: .25, onComplete: function () { prevHero.remove(); } }, 0);
+        if (prevDecor.length) tl.to(prevDecor, { opacity: 0, duration: .25, onComplete: function () { prevDecor.forEach(function (d) { d.remove(); }); } }, 0);
+        tl.from(heroImg, { opacity: 0, duration: .35 }, .2)
+          .from(decorImgs, { opacity: 0, duration: .35 }, .2)
+          .from(copyBits.concat(pills), { opacity: 0, duration: .35 }, .2);
+        return;
+      }
+
+      tl = gsap.timeline({ defaults: { overwrite: 'auto' } });
+      /* старый герой улетает в сторону, старый декор схлопывается */
+      if (prevHero) tl.to(prevHero, { x: -dir * 140, opacity: 0, rotation: -dir * 6, scale: .92, duration: .38, ease: 'power2.in', onComplete: function () { prevHero.remove(); } }, 0);
+      if (prevDecor.length) tl.to(prevDecor, { scale: 0, opacity: 0, duration: .28, ease: 'power2.in', stagger: .03, onComplete: function () { prevDecor.forEach(function (d) { d.remove(); }); } }, 0);
+      tl.to(copyBits, { y: -10, opacity: 0, duration: .22, ease: 'power2.in' }, 0);
+
+      /* новый влетает с другой стороны, декор выпрыгивает, текст и таблетки поднимаются */
+      tl.fromTo(heroImg, { x: dir * 160, opacity: 0, rotation: dir * 6, scale: .92 }, { x: 0, opacity: 1, rotation: 0, scale: 1, duration: .62, ease: 'power3.out' }, .22)
+        .fromTo(decorImgs, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .55, ease: 'back.out(1.8)', stagger: .06 }, .38)
+        .fromTo(copyBits, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .45, ease: 'power2.out', stagger: .06 }, .3)
+        .fromTo(pills, { y: 16, opacity: 0, scale: .96 }, { y: 0, opacity: 1, scale: 1, duration: .45, ease: 'back.out(1.6)', stagger: .05 }, .38)
+        .add(function () { startFloat(heroImg, decorImgs); });
+    });
+  }
+
+  /* Таблетки подпрыгивают под пальцем и курсором */
+  if (hasGsap && !reduce) {
+    pillsEl.addEventListener('pointerdown', function (e) {
+      var pill = e.target.closest('.pill'); if (!pill) return;
+      gsap.fromTo(pill, { scale: .94 }, { scale: 1, duration: .5, ease: 'elastic.out(1, .45)' });
+    });
+    pillsEl.addEventListener('pointerenter', function (e) {
+      var pill = e.target.closest && e.target.closest('.pill'); if (!pill || e.pointerType === 'touch') return;
+      gsap.fromTo(pill, { y: 0 }, { y: -4, duration: .45, ease: 'back.out(3)' });
+    }, true);
+  }
+
+  /* Аналитика: заходы + клики по таблеткам с товаром и площадкой */
+  var track = { view: function () {}, click: function () {} };
+  if (window.METRIKA_ID) {
+    (function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); }; m[i].l = 1 * new Date();
+      k = e.createElement(t); a = e.getElementsByTagName(t)[0]; k.async = 1; k.src = r; a.parentNode.insertBefore(k, a); })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+    ym(METRIKA_ID, 'init', { clickmap: false, trackLinks: true, accurateTrackBounce: true, webvisor: false, trackHash: true });
+    track.view = function (t) { ym(METRIKA_ID, 'hit', location.href, { title: t.название, params: { товар: t.ключ } }); };
+    track.click = function (product, place) {
+      var p = { товар: product, площадка: place };
+      ym(METRIKA_ID, 'reachGoal', 'marketplace_click', p);   // общая цель: любой уход на площадку
+      ym(METRIKA_ID, 'reachGoal', 'click_' + place, p);       // цель по площадке: click_wb / click_ozon / click_shop
+      ym(METRIKA_ID, 'params', { клик: p });                  // параметры визита: какой товар кликают чаще
+    };
+  }
+  pillsEl.addEventListener('click', function (e) {
+    var pill = e.target.closest('.pill'); if (!pill) return;
+    track.click(pill.dataset.product, pill.dataset.place);
+  });
+
+  document.getElementById('logo-link').addEventListener('click', function (e) { e.preventDefault(); show(0, true); });
+  window.addEventListener('hashchange', function () {
+    var k = location.hash.slice(1), idx = items.findIndex(function (t) { return t.ключ === k; });
+    if (idx >= 0 && idx !== current) show(idx, true);
+  });
+
+  var startKey = location.hash.slice(1);
+  var startIdx = items.findIndex(function (t) { return t.ключ === startKey; });
+  show(startIdx >= 0 ? startIdx : 0, false);
+})();
+</script>
+</body>
+</html>
