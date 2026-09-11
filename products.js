@@ -26,10 +26,7 @@ const ТОВАРЫ = [
     герой: 'photo/mashinka-hero.webp',
     миниатюра: 'photo/mashinka-thumb.webp',
     сцена: 'photo/bg/mashinka.webp',
-    декор: [
-      'photo/decor/mashinka-1.webp',   // пульт
-      'photo/decor/mashinka-2.webp',   // аккумулятор 2000 мАч
-    ],
+    декор: [],
     палитра: { фон: '#1B2620', фон2: '#0F1915', акцент: '#B8F53C', акцент2: '#FFD400', текст: '#F4F8F2', текст2: '#A8BDB0', логотип: 'светлый' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/818290060/detail.aspx',
@@ -44,7 +41,7 @@ const ТОВАРЫ = [
     герой: 'photo/wifi-hero.webp',
     миниатюра: 'photo/wifi-thumb.webp',
     сцена: 'photo/bg/wifi.webp',
-    декор: [],                       // боковые виды смотрелись как случайные бруски — убраны
+    декор: [],
     палитра: { фон: '#F26A1B', фон2: '#D4550E', акцент: '#111111', акцент2: '#FFFFFF', текст: '#1B1006', текст2: '#331503', логотип: 'тёмный' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/1008544354/detail.aspx',
@@ -59,13 +56,7 @@ const ТОВАРЫ = [
     герой: 'photo/drakon-hero.webp',
     миниатюра: 'photo/drakon-thumb.webp',
     сцена: 'photo/bg/drakon.webp',
-    декор: [
-      'photo/decor/drakon-1.webp',     // ракета с шариком
-      'photo/decor/drakon-2.webp',     // машинка
-      'photo/decor/drakon-3.webp',     // машинка
-      'photo/decor/drakon-4.webp',     // оранжевый шар из видео
-      'photo/decor/drakon-5.webp',     // розовый шар из видео
-    ],
+    декор: [],
     палитра: { фон: '#0B7C69', фон2: '#075A4C', акцент: '#FFD23F', акцент2: '#2F7BE8', текст: '#FFFFFF', текст2: '#DDF7EF', логотип: 'светлый' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/333934146/detail.aspx',
@@ -80,12 +71,7 @@ const ТОВАРЫ = [
     герой: 'photo/medved-hero.webp',
     миниатюра: 'photo/medved-thumb.webp',
     сцена: 'photo/bg/medved.webp',
-    декор: [
-      'photo/decor/medved-1.webp',     // машинка с шариком
-      'photo/decor/medved-2.webp',     // ракета на станции
-      'photo/decor/medved-3.webp',     // оранжевый шар из видео
-      'photo/decor/medved-4.webp',     // голубой шар из видео
-    ],
+    декор: [],
     палитра: { фон: '#F0A500', фон2: '#D48D00', акцент: '#7E3511', акцент2: '#FF7A1A', текст: '#3B1E06', текст2: '#5E3208', логотип: 'тёмный' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/333952078/detail.aspx',
@@ -100,13 +86,7 @@ const ТОВАРЫ = [
     герой: 'photo/monstr-hero.webp',
     миниатюра: 'photo/monstr-thumb.webp',
     сцена: 'photo/bg/monstr.webp',
-    декор: [
-      'photo/decor/monstr-1.webp',     // ракета
-      'photo/decor/monstr-2.webp',     // фигурка на станции
-      'photo/decor/monstr-3.webp',     // машинка-краб с шариком
-      'photo/decor/monstr-4.webp',     // оранжевый шар из видео
-      'photo/decor/monstr-5.webp',     // красный шар из видео
-    ],
+    декор: [],
     палитра: { фон: '#2E7D22', фон2: '#1F5C17', акцент: '#E23D28', акцент2: '#F5C531', текст: '#FFFFFF', текст2: '#E4F6DE', логотип: 'светлый' },
     ссылки: {
       wb: 'https://www.wildberries.ru/catalog/333958215/detail.aspx',
