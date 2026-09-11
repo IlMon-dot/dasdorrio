@@ -152,7 +152,6 @@
     margin:0; text-wrap:balance; hyphens:manual; overflow-wrap:normal;
     text-shadow:0 2px 18px rgba(0,0,0,.18);
   }
-  .short{margin:8px 0 0; color:var(--fg2); font-size:15px; max-width:34ch}
 
   .pills{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px}
   /* Таблетки полупрозрачные, в тоне сцены: на тёмной сцене затемняют, на светлой — осветляют.
@@ -176,6 +175,7 @@
   .pill--ozon{--c:var(--ozon)}
   .pill--market{--c:var(--market)}
   .pill--shop{--c:var(--accent)}
+  .pill--other{--c:var(--accent2)}
   @media (hover:hover){
     .pill:hover{transform:translateY(-3px); background:var(--pill-bg-hover, rgba(0,0,0,.4)); border-color:var(--pill-line-hover, rgba(255,255,255,.3))}
   }
@@ -229,7 +229,6 @@
     .podium{min-height:min(38vh, 400px); margin-right:0}
     .copy{padding-top:0; max-width:540px}
     h1{font-size:clamp(30px, 3vw, 46px)}
-    .short{font-size:18px; margin-top:14px}
     .pills{margin-top:28px; gap:12px}
     .pill{height:56px; padding:0 24px 0 22px; font-size:17px}
   }
@@ -255,7 +254,6 @@
     <div class="podium" id="podium"></div>
     <div class="copy" id="copy">
       <h1 id="title"></h1>
-      <p class="short" id="short"></p>
       <nav class="pills" id="pills" aria-label="Где купить"></nav>
     </div>
   </main>
@@ -274,7 +272,6 @@
   var podium = document.getElementById('podium');
   var scene = document.getElementById('scene');
   var titleEl = document.getElementById('title');
-  var shortEl = document.getElementById('short');
   var pillsEl = document.getElementById('pills');
   var rail = document.getElementById('rail');
   var logo = document.getElementById('logo');
@@ -283,12 +280,8 @@
   var hasGsap = typeof gsap !== 'undefined';
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var PLACES = {
-    wb:     { name: 'Wildberries', cls: 'pill--wb' },
-    ozon:   { name: 'Ozon',        cls: 'pill--ozon' },
-    market: { name: 'Яндекс Маркет', cls: 'pill--market' },
-    shop:   { name: 'dasdorrio.ru', cls: 'pill--shop' }
-  };
+  /* Монетка таблетки — по виду ссылки; подпись и адрес берутся из products.js */
+  var KIND = { wb: 'pill--wb', ozon: 'pill--ozon', market: 'pill--market', shop: 'pill--shop' };
   var COIN = '<span class="coin" aria-hidden="true"></span>';
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -329,11 +322,11 @@
 
   function buildPills(t) {
     var html = '';
-    Object.keys(PLACES).forEach(function (k) {
-      var url = t.ссылки && t.ссылки[k];
-      if (!url) return;
-      html += '<a class="pill ' + PLACES[k].cls + '" href="' + esc(url) + '" rel="noopener" data-place="' + k + '" data-product="' + esc(t.ключ) + '">' +
-              COIN + '<span>' + PLACES[k].name + '</span></a>';
+    (t.ссылки || []).forEach(function (l) {
+      if (!l || !l.адрес) return;
+      var kind = KIND[l.вид] ? l.вид : 'other';
+      html += '<a class="pill ' + (KIND[kind] || 'pill--other') + '" href="' + esc(l.адрес) + '" rel="noopener" data-place="' + kind + '" data-product="' + esc(t.ключ) + '">' +
+              COIN + '<span>' + esc(l.имя || l.адрес) + '</span></a>';
     });
     pillsEl.innerHTML = html;
   }
@@ -451,11 +444,10 @@
       setTimeout(function () { if (gen === myGen) sweep(myGen, true); }, 1200);
 
       titleEl.textContent = t.название;
-      shortEl.textContent = t.коротко || '';
       buildPills(t);
       placeRail();
       var pills = Array.prototype.slice.call(pillsEl.children);
-      var copyBits = [titleEl, shortEl];
+      var copyBits = [titleEl];
       var removeOld = function () { old.forEach(function (d) { d.remove(); }); };
 
       if (!hasGsap || !animate) {

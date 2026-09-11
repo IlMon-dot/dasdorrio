@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f1113">
+<title>Редактор товаров — Dasdorrio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230B5FA8'/%3E%3Cpath d='M20 6c-6 2-11 8-9 15 1 3 4 5 8 5-4-3-5-8-2-12 1-2 4-4 8-4-1-2-3-4-5-4z' fill='%23fff'/%3E%3Ccircle cx='22' cy='9' r='2.6' fill='%23E5273A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#0f1113; --card:#181b1f; --line:#2a2f36; --fg:#e8ebee; --muted:#9aa3ad;
+    --accent:#4c8dff; --ok:#3ddc84; --bad:#ff6b6b;
+    --wb:#CB11AB; --ozon:#005BFF; --market:#FFCC00; --shop:#B8F53C; --other:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:500 16px/1.45 "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent)}
+  .wrap{max-width:760px; margin:0 auto; padding:18px 16px calc(150px + env(safe-area-inset-bottom))}
+  .top{display:flex; align-items:center; gap:14px; margin-bottom:18px}
+  .top img{width:104px; height:auto; display:block}
+  h1{font-size:20px; margin:0; line-height:1.2}
+  h2{font-size:16px; margin:0 0 10px}
+  .muted{color:var(--muted); font-size:14px}
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .row > input{flex:1 1 220px}
+  input, select{
+    width:100%; height:46px; padding:0 12px; border-radius:10px; border:1px solid var(--line);
+    background:#0f1113; color:var(--fg); font:inherit; outline:none;
+  }
+  input:focus, select:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(76,141,255,.25)}
+  input::placeholder{color:#5f6871}
+  select{appearance:none; -webkit-appearance:none; padding-right:34px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239aa3ad' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center}
+  .field{display:block; margin:12px 0 0}
+  .field > span{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
+  .check{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; color:var(--muted)}
+  .check input{width:18px; height:18px; margin:0; accent-color:var(--accent)}
+  .btn{
+    height:46px; padding:0 18px; border-radius:12px; border:0; background:var(--accent); color:#fff;
+    font:inherit; font-weight:700; cursor:pointer; white-space:nowrap;
+  }
+  .btn:disabled{opacity:.5; cursor:default}
+  .btn--ghost{background:transparent; border:1px solid var(--line); color:var(--fg); font-weight:500}
+  .btn--small{height:38px; padding:0 14px; font-size:14px}
+  .btn--danger{color:var(--bad)}
+  .ib{width:40px; height:40px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--fg); font:inherit; font-size:18px; cursor:pointer; flex:none}
+  .ib:disabled{opacity:.3; cursor:default}
+  details summary{cursor:pointer; color:var(--accent); font-weight:500; margin-top:12px}
+  details ol{padding-left:20px; color:var(--muted); font-size:14px}
+  details li{margin:6px 0}
+  .warn{color:var(--muted); font-size:13px; margin:10px 0 0}
+
+  .card{position:relative}
+  .card__head{display:flex; align-items:center; gap:12px}
+  .card__pic{width:52px; height:52px; border-radius:50%; background:var(--c, #333); flex:none; overflow:hidden}
+  .card__pic img{width:100%; height:100%; object-fit:cover; display:block}
+  .card__title{flex:1; min-width:0}
+  .card__key{font-size:13px; color:var(--muted)}
+  .card__order{display:flex; gap:6px}
+  .links{margin-top:14px}
+  .links h3{font-size:14px; color:var(--muted); font-weight:500; margin:0 0 4px}
+  .link{
+    display:grid; gap:8px; align-items:center; padding:12px; margin-top:8px;
+    border:1px solid var(--line); border-radius:12px;
+    grid-template-columns:14px 1fr 1fr; grid-template-areas:"coin kind name" "addr addr addr" "ctl ctl ctl";
+  }
+  .link .coin{grid-area:coin; width:12px; height:12px; border-radius:50%; background:var(--c); box-shadow:0 0 0 2px rgba(255,255,255,.15)}
+  .link select{grid-area:kind}
+  .link .name{grid-area:name}
+  .link .addr{grid-area:addr; display:flex; gap:8px; align-items:center}
+  .link .addr input{flex:1}
+  .link .open{display:grid; place-items:center; width:40px; height:40px; border-radius:10px; border:1px solid var(--line); text-decoration:none; font-size:18px; flex:none}
+  .link .ctl{grid-area:ctl; display:flex; gap:6px; align-items:center}
+  .link .ctl .spacer{flex:1}
+  .add{margin-top:10px}
+
+  .bar{
+    position:fixed; left:0; right:0; bottom:0; z-index:5;
+    background:rgba(15,17,19,.92); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border-top:1px solid var(--line); padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+  .bar__in{max-width:760px; margin:0 auto; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .status{flex:1 1 240px; font-size:14px; color:var(--muted); min-height:20px}
+  .status.ok{color:var(--ok)}
+  .status.bad{color:var(--bad)}
+  pre{white-space:pre-wrap; word-break:break-word; font-size:12px; color:var(--muted); background:#0f1113; border:1px solid var(--line); border-radius:10px; padding:12px; max-height:50vh; overflow:auto}
+  [hidden]{display:none !important}
+  @media (min-width:600px){
+    .link{grid-template-columns:14px 180px 1fr auto; grid-template-areas:"coin kind name ctl" "addr addr addr addr"}
+    .link .ctl{justify-content:flex-end}
+    .link .ctl .spacer{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="logo/dasdorrio-light.webp" width="340" height="171" alt="Dasdorrio">
+    <div>
+      <h1>Редактор товаров</h1>
+      <div class="muted">Названия, кнопки и ссылки. Картинки и новые товары — через агента.</div>
+    </div>
+  </header>
+
+  <section class="panel" id="access">
+    <h2>Доступ к сайту</h2>
+    <p class="muted" style="margin:0 0 10px">Введите токен GitHub один раз — редактор запомнит его в этом браузере и будет сохранять правки прямо на сайт.</p>
+    <div class="row">
+      <input id="token" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false" aria-label="Токен GitHub">
+      <button class="btn" id="connect" type="button">Подключить</button>
+    </div>
+    <label class="check"><input type="checkbox" id="remember" checked> Запомнить на этом устройстве</label>
+    <div class="row" style="margin-top:10px">
+      <button class="btn btn--ghost btn--small" id="forget" type="button" hidden>Забыть токен</button>
+    </div>
+    <details id="howto">
+      <summary>Как получить токен (один раз, 3 минуты)</summary>
+      <ol>
+        <li>Откройте <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> (это Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token).</li>
+        <li>Token name — любое, например «редактор сайта». Expiration — Custom, дата через год. Когда срок выйдет, создайте новый так же.</li>
+        <li>Repository access → <b>Only select repositories</b> → выберите <b>dasdorrio</b>.</li>
+        <li>Permissions → Repository permissions → <b>Contents</b> → <b>Read and write</b>. Больше ничего не включайте.</li>
+        <li>Generate token → скопируйте строку <code>github_pat_…</code> (показывается один раз) → вставьте сюда → «Подключить».</li>
+      </ol>
+      <p class="warn">Токен даёт право менять файлы этого репозитория — никому его не пересылайте. Он хранится только в вашем браузере, в код сайта не попадает.</p>
+    </details>
+  </section>
+
+  <p class="muted" id="hint" style="margin:0 0 10px">Порядок карточек = порядок в ленте на сайте. Первый товар показывается при открытии.</p>
+  <div id="list"></div>
+
+  <details class="panel">
+    <summary style="margin:0">Что будет записано в products.js</summary>
+    <pre id="preview" style="margin-top:12px"></pre>
+  </details>
+</div>
+
+<div class="bar">
+  <div class="bar__in">
+    <button class="btn" id="save" type="button">Сохранить на сайт</button>
+    <a class="btn btn--ghost" id="site" href="https://ilmon-dot.github.io/dasdorrio/" target="_blank" rel="noopener" style="display:inline-grid; place-items:center; text-decoration:none">Открыть сайт</a>
+    <div class="status" id="status" role="status" aria-live="polite">Загружаю…</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var REPO = 'IlMon-dot/dasdorrio', FILE = 'products.js', BRANCH = 'main';
+  var API = 'https://api.github.com/repos/' + REPO + '/contents/' + FILE;
+  var KINDS = [['wb', 'Wildberries'], ['ozon', 'Ozon'], ['market', 'Яндекс Маркет'], ['shop', 'dasdorrio.ru'], ['other', 'Другая']];
+  var KIND_NAME = {}; KINDS.forEach(function (k) { KIND_NAME[k[0]] = k[1]; });
+  var DEFAULT_NAMES = KINDS.map(function (k) { return k[1]; }).concat(['Ссылка']);
+  var STORE = 'dasdorrio-editor-token';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var el = { token: $('token'), connect: $('connect'), remember: $('remember'), forget: $('forget'), list: $('list'),
+             save: $('save'), status: $('status'), preview: $('preview') };
+  var state = { token: '', header: '', eol: '\n', sha: null, items: [], source: '', dirty: false, online: false };
+
+  /* ---------- утилиты ---------- */
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function b64encode(str) { var bytes = new TextEncoder().encode(str), bin = ''; for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]); return btoa(bin); }
+  function b64decode(b64) { var bin = atob(String(b64).replace(/\s/g, '')), bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return new TextDecoder().decode(bytes); }
+  function status(text, kind) { el.status.textContent = text; el.status.className = 'status' + (kind ? ' ' + kind : ''); }
+  function headers(json) { var h = { Authorization: 'Bearer ' + state.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }; if (json) h['Content-Type'] = 'application/json'; return h; }
+  function httpError(code) {
+    var m = { 401: 'Токен не принят: проверьте, что он скопирован целиком и не истёк.',
+              403: 'Нет прав: у токена должно быть право Contents → Read and write на репозиторий dasdorrio.',
+              404: 'Репозиторий или файл не найден: проверьте, что токену выдан доступ к dasdorrio.' };
+    return new Error(m[code] || ('GitHub ответил ошибкой ' + code + '.'));
+  }
+
+  /* ---------- разбор и сборка products.js ---------- */
+  function parseProducts(src) {
+    var items = new Function(src + '\n;return ТОВАРЫ;')();
+    if (!Array.isArray(items)) throw new Error('в файле нет списка ТОВАРЫ');
+    items.forEach(function (t) { if (!Array.isArray(t.ссылки)) t.ссылки = []; });
+    return items;
+  }
+  function splitHeader(src) { var i = src.indexOf('const ТОВАРЫ'); return i < 0 ? '' : src.slice(0, i); }
+  function q(s) { return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"; }
+  function val(v) {
+    if (typeof v === 'string') return q(v);
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (v == null) return 'null';
+    if (Array.isArray(v)) return '[' + v.map(val).join(', ') + ']';
+    if (typeof v === 'object') return '{ ' + Object.keys(v).map(function (k) { return k + ': ' + val(v[k]); }).join(', ') + ' }';
+    return 'null';
+  }
+  function serialize(items, header, eol) {
+    var L = ['const ТОВАРЫ = ['];
+    items.forEach(function (t) {
+      L.push('  {');
+      Object.keys(t).forEach(function (k) {
+        if (k === 'ссылки') {
+          L.push('    ссылки: [');
+          t.ссылки.forEach(function (l) { L.push('      ' + val({ вид: l.вид, имя: l.имя, адрес: l.адрес }) + ','); });
+          L.push('    ],');
+        } else {
+          L.push('    ' + k + ': ' + val(t[k]) + ',');
+        }
+      });
+      L.push('  },');
+    });
+    L.push('];');
+    return (header.replace(/\r\n/g, '\n') + L.join('\n') + '\n').replace(/\n/g, eol);
+  }
+  function currentText() { return serialize(state.items, state.header, state.eol); }
+
+  /* ---------- модель ---------- */
+  function touch() {
+    state.dirty = currentText() !== state.source;
+    updateBar();
+    if (el.preview.closest('details').open) el.preview.textContent = currentText();
+  }
+  function isDefaultName(n) { return !String(n || '').trim() || DEFAULT_NAMES.indexOf(String(n).trim()) >= 0; }
+  function moveInArray(arr, i, d) { var j = i + d; if (j < 0 || j >= arr.length) return false; var x = arr[i]; arr[i] = arr[j]; arr[j] = x; return true; }
+
+  /* ---------- проверка перед записью ---------- */
+  function validate() {
+    var errors = [];
+    state.items.forEach(function (t, i) {
+      t.название = String(t.название || '').trim();
+      if (!t.название) errors.push('Товар ' + (i + 1) + ': пустое название');
+      t.ссылки.forEach(function (l, j) {
+        l.адрес = String(l.адрес || '').trim(); l.имя = String(l.имя || '').trim();
+        if (!l.имя) l.имя = KIND_NAME[l.вид] || 'Ссылка';
+        var ok = /^https:\/\/\S+$/i.test(l.адрес);
+        if (ok) { try { new URL(l.адрес); } catch (e) { ok = false; } }
+        if (!ok) errors.push((t.название || t.ключ) + ', кнопка ' + (j + 1) + ' («' + l.имя + '»): адрес должен начинаться с https://');
+      });
+    });
+    return errors;
+  }
+
+  /* ---------- отрисовка ---------- */
+  function coinVar(kind) { return KIND_NAME[kind] ? '--' + kind : '--other'; }
+  function linkRow(l, j, n) {
+    return '<div class="link" data-j="' + j + '">' +
+      '<span class="coin" style="--c:var(' + coinVar(l.вид) + ')"></span>' +
+      '<select data-f="вид" aria-label="Площадка">' + KINDS.map(function (k) { return '<option value="' + k[0] + '"' + (k[0] === l.вид ? ' selected' : '') + '>' + k[1] + '</option>'; }).join('') + '</select>' +
+      '<input class="name" data-f="имя" placeholder="Подпись кнопки" value="' + esc(l.имя) + '" aria-label="Подпись кнопки">' +
+      '<div class="addr"><input data-f="адрес" type="url" inputmode="url" placeholder="https://…" value="' + esc(l.адрес) + '" aria-label="Адрес ссылки">' +
+      '<a class="open" href="' + esc(l.адрес || '#') + '" target="_blank" rel="noopener" title="Открыть ссылку в новой вкладке">↗</a></div>' +
+      '<div class="ctl"><button class="ib" type="button" data-act="link-up" title="Выше"' + (j === 0 ? ' disabled' : '') + '>↑</button>' +
+      '<button class="ib" type="button" data-act="link-down" title="Ниже"' + (j === n - 1 ? ' disabled' : '') + '>↓</button>' +
+      '<span class="spacer"></span><button class="btn btn--ghost btn--small btn--danger" type="button" data-act="link-del">Убрать</button></div>' +
+      '</div>';
+  }
+  function card(t, i, n) {
+    var pal = t.палитра || {};
+    return '<section class="panel card" data-i="' + i + '">' +
+      '<div class="card__head">' +
+        '<div class="card__pic" style="--c:' + esc(pal.фон || '#333') + '">' + (t.миниатюра ? '<img src="' + esc(t.миниатюра) + '" alt="">' : '') + '</div>' +
+        '<div class="card__title"><div class="card__key">' + (i + 1) + ' из ' + n + ' · ' + esc(t.ключ) + '</div><b>' + esc(t.название) + '</b></div>' +
+        '<div class="card__order"><button class="ib" type="button" data-act="item-up" title="Выше в ленте"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+        '<button class="ib" type="button" data-act="item-down" title="Ниже в ленте"' + (i === n - 1 ? ' disabled' : '') + '>↓</button></div>' +
+      '</div>' +
+      '<label class="field"><span>Название на сайте</span><input data-f="название" value="' + esc(t.название) + '"></label>' +
+      '<div class="links"><h3>Кнопки под названием</h3>' + t.ссылки.map(function (l, j) { return linkRow(l, j, t.ссылки.length); }).join('') +
+      (t.ссылки.length ? '' : '<p class="muted">Кнопок нет — на сайте под названием будет пусто.</p>') + '</div>' +
+      '<button class="btn btn--ghost btn--small add" type="button" data-act="link-add">+ Добавить кнопку</button>' +
+      '</section>';
+  }
+  function render() {
+    var n = state.items.length;
+    el.list.innerHTML = state.items.map(function (t, i) { return card(t, i, n); }).join('');
+  }
+  function updateBar() {
+    el.save.disabled = !state.online || !state.dirty;
+    if (state.online && state.dirty) status('Есть несохранённые изменения.');
+  }
+
+  /* ---------- события формы ---------- */
+  function onEdit(e) {
+    var f = e.target.getAttribute('data-f'); if (!f) return;
+    var cardEl = e.target.closest('.card'); if (!cardEl) return;
+    var t = state.items[+cardEl.getAttribute('data-i')];
+    var row = e.target.closest('.link');
+    if (row) {
+      var l = t.ссылки[+row.getAttribute('data-j')];
+      if (f === 'вид') {
+        if (isDefaultName(l.имя)) { l.имя = KIND_NAME[e.target.value] === 'Другая' ? 'Ссылка' : KIND_NAME[e.target.value]; row.querySelector('.name').value = l.имя; }
+        l.вид = e.target.value;
+        row.querySelector('.coin').style.setProperty('--c', 'var(' + coinVar(l.вид) + ')');
+      } else {
+        l[f] = e.target.value;
+        if (f === 'адрес') row.querySelector('.open').href = e.target.value || '#';
+      }
+    } else {
+      t[f] = e.target.value;
+      if (f === 'название') cardEl.querySelector('.card__title b').textContent = e.target.value;
+    }
+    touch();
+  }
+  el.list.addEventListener('input', onEdit);
+  el.list.addEventListener('change', onEdit);
+  el.list.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-act]'); if (!btn) return;
+    var act = btn.getAttribute('data-act');
+    var i = +btn.closest('.card').getAttribute('data-i'), t = state.items[i];
+    var row = btn.closest('.link'), j = row ? +row.getAttribute('data-j') : -1;
+    if (act === 'item-up') moveInArray(state.items, i, -1);
+    if (act === 'item-down') moveInArray(state.items, i, 1);
+    if (act === 'link-add') t.ссылки.push({ вид: 'wb', имя: 'Wildberries', адрес: '' });
+    if (act === 'link-del') { if (!confirm('Убрать кнопку «' + (t.ссылки[j].имя || t.ссылки[j].адрес) + '»?')) return; t.ссылки.splice(j, 1); }
+    if (act === 'link-up') moveInArray(t.ссылки, j, -1);
+    if (act === 'link-down') moveInArray(t.ссылки, j, 1);
+    render(); touch();
+    if (act === 'link-add') { var rows = el.list.querySelectorAll('.card[data-i="' + i + '"] .link'); var last = rows[rows.length - 1]; if (last) last.querySelector('[data-f="адрес"]').focus(); }
+  });
+  el.preview.closest('details').addEventListener('toggle', function () { if (this.open) el.preview.textContent = currentText(); });
+  window.addEventListener('beforeunload', function (e) { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- загрузка ---------- */
+  function apply(src, sha, online) {
+    state.items = parseProducts(src);
+    state.source = src; state.sha = sha; state.online = online;
+    state.eol = src.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
+    state.header = splitHeader(src);
+    state.dirty = false;
+    render(); updateBar();
+  }
+  function load() {
+    status('Загружаю…');
+    var fromRepo = state.token
+      ? fetch(API + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' }).then(function (r) {
+          if (!r.ok) throw httpError(r.status);
+          return r.json();
+        }).then(function (j) {
+          apply(b64decode(j.content), j.sha, true);
+          el.forget.hidden = false;
+          status('Подключено. Правьте и нажимайте «Сохранить на сайт».', 'ok');
+          return true;
+        }).catch(function (e) { status(e.message + ' Показываю копию с сайта, сохранение недоступно.', 'bad'); return false; })
+      : Promise.resolve(false);
+    return fromRepo.then(function (ok) {
+      if (ok) return;
+      return fetch(FILE + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('файл не найден (' + r.status + ')');
+        return r.text();
+      }).then(function (src) {
+        apply(src, null, false);
+        if (!state.token) status('Без токена можно смотреть, но не сохранять. Введите токен выше и нажмите «Подключить».');
+      }).catch(function (e) { status('Не удалось загрузить products.js: ' + e.message, 'bad'); });
+    });
+  }
+
+  /* ---------- запись ---------- */
+  function save() {
+    var errors = validate();
+    render();
+    if (errors.length) { status('Не сохранено. ' + errors.join(' · '), 'bad'); return; }
+    var text = currentText();
+    try { parseProducts(text); } catch (e) { status('Файл не собрался, ничего не записано: ' + e.message, 'bad'); return; }
+    if (!state.online || !state.sha) { status('Нет подключения к репозиторию: введите токен и нажмите «Подключить».', 'bad'); return; }
+    el.save.disabled = true; status('Сохраняю…');
+    fetch(API, { method: 'PUT', headers: headers(true),
+      body: JSON.stringify({ message: 'Названия и ссылки обновлены через редактор', content: b64encode(text), sha: state.sha, branch: BRANCH }) })
+    .then(function (r) {
+      if (r.status === 409 || r.status === 422) {
+        status('Файл на сайте уже изменился кем-то ещё. Перезагружаю данные — повторите правки и сохраните снова.', 'bad');
+        return load();
+      }
+      if (!r.ok) throw httpError(r.status);
+      return r.json().then(function (j) {
+        state.sha = j.content && j.content.sha || state.sha;
+        state.source = text; state.dirty = false; updateBar();
+        status('Сохранено. Сайт обновится примерно через минуту.', 'ok');
+      });
+    })
+    .catch(function (e) { status('Не сохранено: ' + e.message, 'bad'); el.save.disabled = false; });
+  }
+  el.save.addEventListener('click', save);
+
+  /* ---------- токен ---------- */
+  el.connect.addEventListener('click', function () {
+    var t = el.token.value.trim();
+    if (!t) { status('Вставьте токен в поле слева.', 'bad'); return; }
+    state.token = t;
+    try { if (el.remember.checked) localStorage.setItem(STORE, t); else localStorage.removeItem(STORE); } catch (e) { /* приватный режим */ }
+    load();
+  });
+  el.token.addEventListener('keydown', function (e) { if (e.key === 'Enter') el.connect.click(); });
+  el.forget.addEventListener('click', function () {
+    try { localStorage.removeItem(STORE); } catch (e) { /* ничего */ }
+    state.token = ''; el.token.value = ''; el.forget.hidden = true;
+    load();
+  });
+
+  try { var saved = localStorage.getItem(STORE); if (saved) { el.token.value = saved; state.token = saved; } } catch (e) { /* ничего */ }
+  load();
+})();
+</script>
+</body>
+</html>
