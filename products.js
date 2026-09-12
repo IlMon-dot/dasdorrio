@@ -24,7 +24,7 @@
 const ТОВАРЫ = [
   {
     ключ: 'mashinka',
-    название: 'Багги на радиоуправлении',
+    название: 'Багги на радиоуправлении 111',
     герой: 'photo/mashinka-hero.webp',
     миниатюра: 'photo/mashinka-thumb.webp',
     сцена: 'photo/bg/mashinka.webp',
