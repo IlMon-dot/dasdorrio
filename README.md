@@ -81,6 +81,27 @@ GitHub Pages разрешает браузеру держать файлы 10 м
 грузятся с `?v=метка`), данные грузятся с меткой минуты, а страница сама
 перезагружается один раз, если на сервере она новее.
 
+## Метки UTM: откуда пришли
+
+Метка ставится **до** решётки, иначе она не работает:
+
+- верно: `https://dasdorrio.shop/?utm_source=instagram&utm_medium=bio#drakon`
+- неверно: `https://dasdorrio.shop/#drakon?utm_source=instagram` — всё после решётки
+  считается именем товара, метка теряется полностью.
+
+Заготовки под шапки профилей:
+
+| Где ссылка | Адрес |
+|---|---|
+| Instagram, шапка | `https://dasdorrio.shop/?utm_source=instagram&utm_medium=bio` |
+| TikTok, шапка | `https://dasdorrio.shop/?utm_source=tiktok&utm_medium=bio` |
+| YouTube, описание ролика | `https://dasdorrio.shop/?utm_source=youtube&utm_medium=video&utm_campaign=drakon#drakon` |
+| VK, шапка | `https://dasdorrio.shop/?utm_source=vk&utm_medium=bio` |
+
+Метрика берёт метку из первого просмотра визита и различает регистр, поэтому
+значения пишем строчными и метку ставим на саму ссылку, а не на переход внутри
+сайта. Отчёт: Отчёты → Источники → Метки UTM.
+
 ## Прямая ссылка на товар
 
 `https://dasdorrio.shop/#ключ` открывает сразу нужный товар,

@@ -26,6 +26,18 @@
      а правки из редактора должны быть видны сразу. */
   document.write('<script src="products.js?v=' + Math.floor(Date.now() / 60000) + '"><\/script>');
 </script>
+<script>
+  /* Адрес просмотра для Метрики. При заходе без решётки на экране всё равно показан первый товар,
+     поэтому в счётчик отдаём адрес с его ключом — иначе первый просмотр пишется без товара,
+     и в отчёте «Просмотры URL» вместо товаров копятся строки без решётки. */
+  var АДРЕС_ПРОСМОТРА = (function () {
+    try {
+      var k = (location.hash || '').slice(1);
+      if (!k && typeof ТОВАРЫ !== 'undefined' && ТОВАРЫ.length) k = ТОВАРЫ[0].ключ;
+      return location.origin + location.pathname + location.search + (k ? '#' + k : '');
+    } catch (e) { return location.href; }
+  })();
+</script>
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     (function(m,e,t,r,i,k,a){
@@ -35,7 +47,7 @@
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
     })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112528267', 'ym');
 
-    ym(112528267, 'init', {ssr:true, clickmap:true, referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+    ym(112528267, 'init', {ssr:true, clickmap:true, referrer: document.referrer, url: АДРЕС_ПРОСМОТРА, accurateTrackBounce:true, trackLinks:true});
 </script>
 <noscript><div><img src="https://mc.yandex.ru/watch/112528267" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex.Metrika counter -->
