@@ -84,14 +84,14 @@ const ТОВАРЫ = [
   },
   {
     ключ: 'monstr',
-    название: 'Реактивные машинки: монстр',
+    название: 'Реактивные машинки: зеленый монстр',
     герой: 'photo/monstr-hero.webp',
     миниатюра: 'photo/monstr-thumb.webp',
     сцена: 'photo/bg/monstr.webp',
     геройБокс: [0.3945, 0.1226, 0.417, 0.6602],
     палитра: { фон: '#1B5A14', фон2: '#123F0D', акцент: '#F5C531', акцент2: '#E23D28', текст: '#FFFFFF', текст2: '#D6F0CF', логотип: 'светлый' },
     ссылки: [
-      { вид: 'wb', имя: 'Wildberries', адрес: 'https://www.wildberries.ru/catalog/333958215/detail.aspx' },
+      { вид: 'wb', имя: 'Wildberries', адрес: 'https://wildberries.ru/catalog/0/search.aspx?search=WW1083382' },
       { вид: 'ozon', имя: 'Ozon', адрес: 'https://www.ozon.ru/product/2129364886/' },
       { вид: 'shop', имя: 'dasdorrio.ru', адрес: 'https://dasdorrio.ru/products/reaktivnye-mashinki-s-vozdushnymi-sharikami-dasdorrio-igrushki-dlya-malchikov-2-3-4-goda-podarok-na-novyiy-god-i-na-den-rojdeniya-1-100045' },
     ],
