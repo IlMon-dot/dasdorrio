@@ -378,12 +378,14 @@
       return r.json().then(function (j) {
         state.sha = j.content && j.content.sha || state.sha;
         state.source = text; state.dirty = false; updateBar();
-        status('Сохранено. Сайт обновится примерно через минуту.', 'ok');
+        status('Сохранено. Сайт обновится примерно через минуту — проверьте через «Открыть сайт».', 'ok');
       });
     })
     .catch(function (e) { status('Не сохранено: ' + e.message, 'bad'); el.save.disabled = false; });
   }
   el.save.addEventListener('click', save);
+  /* «Открыть сайт» — всегда свежая версия, минуя кэш браузера */
+  $('site').addEventListener('click', function () { this.href = 'https://ilmon-dot.github.io/dasdorrio/?v=' + Date.now(); });
 
   /* ---------- токен ---------- */
   el.connect.addEventListener('click', function () {

@@ -21,7 +21,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Onest:wght@500&display=swap">
 
-<script src="products.js"></script>
+<script>
+  /* Данные подключаются с меткой минуты: GitHub Pages кэширует файлы на 10 минут,
+     а правки из редактора должны быть видны сразу. */
+  document.write('<script src="products.js?v=' + Math.floor(Date.now() / 60000) + '"><\/script>');
+</script>
 <script>
   /* Яндекс.Метрика: после создания счётчика на metrika.yandex.ru вписать его номер вместо 0.
      Пока 0 — счётчик не подключается и страницу не замедляет. */
