@@ -35,7 +35,7 @@ const ТОВАРЫ = [
     геройБокс: [0.0908, 0.3594, 0.7695, 0.3428],
     палитра: { фон: '#1B2620', фон2: '#0F1915', акцент: '#B8F53C', акцент2: '#FFD400', текст: '#F4F8F2', текст2: '#A8BDB0', логотип: 'светлый' },
     ссылки: [
-      { вид: 'wb', имя: 'Wildberries', адрес: 'https://www.wildberries.ru/catalog/818290060/detail.aspx' },
+      { вид: 'wb', имя: 'Wildberries', адрес: 'https://wildberries.ru/catalog/0/search.aspx?search=WW1083369' },
       { вид: 'ozon', имя: 'Ozon', адрес: 'https://www.ozon.ru/product/3522577361/' },
       { вид: 'shop', имя: 'dasdorrio.ru', адрес: 'https://dasdorrio.ru/products/mashinka-na-pulte-upravleniya-dlya-malchika-100021' },
     ],
