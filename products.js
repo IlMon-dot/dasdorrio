@@ -36,7 +36,7 @@ const ТОВАРЫ = [
     палитра: { фон: '#1B2620', фон2: '#0F1915', акцент: '#B8F53C', акцент2: '#FFD400', текст: '#F4F8F2', текст2: '#A8BDB0', логотип: 'светлый' },
     ссылки: [
       { вид: 'wb', имя: 'Wildberries', адрес: 'https://wildberries.ru/catalog/0/search.aspx?search=WW1083369' },
-      { вид: 'ozon', имя: 'Ozon', адрес: 'https://ozon.ru/product/3522577361/?hs=1&utm_campaign=vendor_org_446525&utm_medium=video&utm_source=site&utm_term=prokladka' },
+      { вид: 'ozon', имя: 'Ozon', адрес: 'https://ozon.ru/product/3522577361/?hs=1&utm_campaign=vendor_org_446525&utm_medium=video&utm_source=site&utm_term=prokladka_baggi' },
       { вид: 'shop', имя: 'dasdorrio.ru', адрес: 'https://dasdorrio.ru/products/mashinka-na-pulte-upravleniya-dlya-malchika-100021?utm_source=prokladka' },
     ],
   },
