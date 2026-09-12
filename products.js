@@ -49,7 +49,7 @@ const ТОВАРЫ = [
     геройБокс: [0.3311, 0.1616, 0.332, 0.6074],
     палитра: { фон: '#F26A1B', фон2: '#D4550E', акцент: '#111111', акцент2: '#FFFFFF', текст: '#1B1006', текст2: '#331503', логотип: 'тёмный' },
     ссылки: [
-      { вид: 'wb', имя: 'Wildberries', адрес: 'https://www.wildberries.ru/catalog/1008544354/detail.aspx' },
+      { вид: 'wb', имя: 'Wildberries', адрес: 'https://wildberries.ru/catalog/0/search.aspx?search=WW1083374' },
       { вид: 'ozon', имя: 'Ozon', адрес: 'https://www.ozon.ru/product/3673003479/' },
       { вид: 'shop', имя: 'dasdorrio.ru', адрес: 'https://dasdorrio.ru/products/vaiy-faiy-adapter-dlya-pk-dasdorrio-wi-fi-adapter-dlya-kompytera-i-dlya-noutbuka-usb-3-100082' },
     ],
