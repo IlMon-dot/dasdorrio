@@ -28,8 +28,8 @@
 </script>
 <script>
   /* Яндекс.Метрика: номер счётчика с metrika.yandex.ru (0 — счётчик выключен).
-     Вебвизор и карта кликов выключены: страница лёгкая, а что нажимают — видно по целям. Включить: webvisor: true, clickmap: true. */
-  var METRIKA_ID = 112527538;
+     Вебвизор выключен (не нужен: считаем заходы и клики), карта кликов включена как в коде из кабинета. */
+  var METRIKA_ID = 112528267;
 </script>
 <script>
   /* Красим страницу в палитру первого товара до первой отрисовки — без вспышки белого. */
@@ -281,7 +281,7 @@
 
   <nav class="rail" id="rail" aria-label="Выбор товара"></nav>
   <div class="hint" id="hint" hidden aria-hidden="true">Выберите товар<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
-  <noscript><p style="padding:20px">Для выбора товара нужен JavaScript. Все товары есть на Wildberries и Ozon по запросу «Dasdorrio».</p><div><img src="https://mc.yandex.ru/watch/112527538" style="position:absolute; left:-9999px;" alt=""></div></noscript>
+  <noscript><p style="padding:20px">Для выбора товара нужен JavaScript. Все товары есть на Wildberries и Ozon по запросу «Dasdorrio».</p><div><img src="https://mc.yandex.ru/watch/112528267" style="position:absolute; left:-9999px;" alt=""></div></noscript>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -548,7 +548,7 @@
         for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
     })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=' + METRIKA_ID, 'ym');
-    ym(METRIKA_ID, 'init', { ssr: true, webvisor: false, clickmap: false, referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true, trackHash: true });
+    ym(METRIKA_ID, 'init', { ssr: true, clickmap: true, ecommerce: 'dataLayer', referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true, trackHash: true });
     track.view = function (t) { ym(METRIKA_ID, 'hit', location.href, { title: t.название, params: { товар: t.ключ } }); };
     track.click = function (product, place) {
       var p = { товар: product, площадка: place };
