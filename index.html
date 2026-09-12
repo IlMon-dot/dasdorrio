@@ -41,10 +41,11 @@
     s.setProperty('--bg', p.фон); s.setProperty('--bg2', p.фон2);
     s.setProperty('--accent', p.акцент); s.setProperty('--accent2', p.акцент2);
     s.setProperty('--fg', p.текст); s.setProperty('--fg2', p.текст2);
+    var v = typeof ВЕРСИЯ_КАРТИНОК !== 'undefined' ? ВЕРСИЯ_КАРТИНОК : '1';
     [first.сцена, first.герой].forEach(function (src) {
       if (!src) return;
       var link = document.createElement('link');
-      link.rel = 'preload'; link.as = 'image'; link.href = src;
+      link.rel = 'preload'; link.as = 'image'; link.href = src + '?v=' + v;
       document.head.appendChild(link);
     });
   })();
@@ -288,6 +289,9 @@
   var KIND = { wb: 'pill--wb', ozon: 'pill--ozon', market: 'pill--market', shop: 'pill--shop' };
   var COIN = '<span class="coin" aria-hidden="true"></span>';
 
+  /* Картинки с меткой версии из products.js: после замены файлов браузер не покажет старые */
+  var IMG_V = typeof ВЕРСИЯ_КАРТИНОК !== 'undefined' ? ВЕРСИЯ_КАРТИНОК : '1';
+  function pic(u) { return u ? u + '?v=' + IMG_V : u; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   /* Лента миниатюр */
@@ -296,7 +300,7 @@
     b.type = 'button';
     b.style.setProperty('--c', t.палитра.фон);
     b.setAttribute('aria-label', t.название);
-    b.innerHTML = '<img src="' + esc(t.миниатюра) + '" alt="" width="200" height="200">';
+    b.innerHTML = '<img src="' + esc(pic(t.миниатюра)) + '" alt="" width="200" height="200">';
     b.addEventListener('click', function () { show(i, true); });
     rail.appendChild(b);
   });
@@ -351,10 +355,10 @@
     var layer = document.createElement('div');
     layer.className = 'layer'; layer.dataset.gen = g;
     var blur = document.createElement('div'); blur.className = 'blur';
-    if (t.сцена) blur.style.backgroundImage = 'url("' + t.сцена + '")';
+    if (t.сцена) blur.style.backgroundImage = 'url("' + pic(t.сцена) + '")';
     var frame = document.createElement('div'); frame.className = 'frame';
     if (t.сцена) {
-      var bg = document.createElement('img'); bg.className = 'bg'; bg.src = t.сцена; bg.alt = '';
+      var bg = document.createElement('img'); bg.className = 'bg'; bg.src = pic(t.сцена); bg.alt = '';
       frame.appendChild(bg);
     }
     var veil = document.createElement('div'); veil.className = 'veil';
@@ -366,7 +370,7 @@
     shadow.style.setProperty('--sh', box[3] * 0.12 * 100 + '%');
     fg.appendChild(shadow);
     var hero = document.createElement('img'); hero.className = 'hero';
-    hero.src = t.герой; hero.alt = t.название; hero.setAttribute('fetchpriority', 'high');
+    hero.src = pic(t.герой); hero.alt = t.название; hero.setAttribute('fetchpriority', 'high');
     hero.style.setProperty('--hx', box[0] * 100 + '%');
     hero.style.setProperty('--hy', box[1] * 100 + '%');
     hero.style.setProperty('--hw', box[2] * 100 + '%');
@@ -447,7 +451,7 @@
 
     setPalette(t.палитра, animate);
 
-    Promise.all([preload(t.герой), preload(t.сцена)]).then(function () {
+    Promise.all([preload(pic(t.герой)), preload(pic(t.сцена))]).then(function () {
       if (current !== i) return;               // успели нажать другое — этот кадр пропускаем
       if (tl) tl.kill();
       killFloat();
@@ -534,6 +538,16 @@
     var k = location.hash.slice(1), idx = items.findIndex(function (t) { return t.ключ === k; });
     if (idx >= 0 && idx !== current) show(idx, true);
   });
+
+  /* GitHub Pages отдаёт страницу из кэша до 10 минут: если на сервере она новее — перезагрузить один раз */
+  try {
+    fetch(location.pathname, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      var srv = Date.parse(r.headers.get('last-modified') || ''), mine = Date.parse(document.lastModified);
+      if (srv && mine && srv - mine > 60000 && !sessionStorage.getItem('reload-' + srv)) {
+        sessionStorage.setItem('reload-' + srv, '1'); location.reload();
+      }
+    }).catch(function () {});
+  } catch (e) { /* file:// */ }
 
   var startKey = location.hash.slice(1);
   var startIdx = items.findIndex(function (t) { return t.ключ === startKey; });
