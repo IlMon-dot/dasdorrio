@@ -548,7 +548,7 @@
 
   /* Аналитика: заходы + клики по таблеткам с товаром и площадкой */
   var track = { view: function () {}, click: function () {} };
-  /* сам счётчик подключён кодом из кабинета в начале body; здесь только цели и просмотры товаров */
+  /* сам счётчик подключён кодом из кабинета в <head>; здесь только цели и просмотры товаров */
   if (typeof ym === 'function') {
     track.view = function (t) { ym(112528267, 'hit', location.href, { title: t.название, params: { товар: t.ключ } }); };
     track.click = function (product, place) {
