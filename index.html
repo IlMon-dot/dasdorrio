@@ -27,7 +27,7 @@
   document.write('<script src="products.js?v=' + Math.floor(Date.now() / 60000) + '"><\/script>');
 </script>
 <script>
-  /* Яндекс.Метрика: номер счётчика с metrika.yandex.ru (0 — счётчик выключен).
+  /* Яндекс.Метрика: номер счётчика с metrika.yandex.ru (0 — выключить; номер продублирован буквально в коде загрузчика ниже).
      Вебвизор выключен (не нужен: считаем заходы и клики), карта кликов включена как в коде из кабинета. */
   var METRIKA_ID = 112528267;
 </script>
@@ -547,8 +547,8 @@
         m[i].l=1*new Date();
         for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
         k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=' + METRIKA_ID, 'ym');
-    ym(METRIKA_ID, 'init', { ssr: true, clickmap: true, ecommerce: 'dataLayer', referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true, trackHash: true });
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112528267', 'ym');
+    ym(112528267, 'init', {ssr:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true, trackHash:true});
     track.view = function (t) { ym(METRIKA_ID, 'hit', location.href, { title: t.название, params: { товар: t.ключ } }); };
     track.click = function (product, place) {
       var p = { товар: product, площадка: place };
