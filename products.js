@@ -64,7 +64,7 @@ const ТОВАРЫ = [
     палитра: { фон: '#0A4F44', фон2: '#063A32', акцент: '#FFD23F', акцент2: '#2F7BE8', текст: '#FFFFFF', текст2: '#CDEBE3', логотип: 'светлый' },
     ссылки: [
       { вид: 'wb', имя: 'Wildberries', адрес: 'https://wildberries.ru/catalog/0/search.aspx?search=WW1083375' },
-      { вид: 'ozon', имя: 'Ozon', адрес: 'https://www.ozon.ru/product/2129345617/' },
+      { вид: 'ozon', имя: 'Ozon', адрес: 'https://ozon.ru/product/2129345617/?hs=1&utm_campaign=vendor_org_446525&utm_medium=video&utm_source=site&utm_term=prokladka_green_dragon' },
       { вид: 'shop', имя: 'dasdorrio.ru', адрес: 'https://dasdorrio.ru/products/reaktivnye-mashinki-s-vozdushnymi-sharikami-dasdorrio-igrushki-dlya-malchikov-2-3-4-goda-podarok-na-novyiy-god-i-na-den-rojdeniya-5-100068?utm_source=prokladka' },
     ],
   },
