@@ -28,7 +28,7 @@ const ВЕРСИЯ_КАРТИНОК = '20260912-2';
 const ТОВАРЫ = [
   {
     ключ: 'mashinka',
-    название: 'Багги на радиоуправлении 111',
+    название: 'Багги на радиоуправлении',
     герой: 'photo/mashinka-hero.webp',
     миниатюра: 'photo/mashinka-thumb.webp',
     сцена: 'photo/bg/mashinka.webp',
