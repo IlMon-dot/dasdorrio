@@ -26,11 +26,19 @@
      а правки из редактора должны быть видны сразу. */
   document.write('<script src="products.js?v=' + Math.floor(Date.now() / 60000) + '"><\/script>');
 </script>
-<script>
-  /* Яндекс.Метрика: номер счётчика для целей (сам код счётчика — в начале body, как выдан в кабинете; 0 — цели выключены).
-     Вебвизор выключен (не нужен: считаем заходы и клики), карта кликов включена как в коде из кабинета. */
-  var METRIKA_ID = 112528267;
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112528267', 'ym');
+
+    ym(112528267, 'init', {ssr:true, clickmap:true, referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
 </script>
+<noscript><div><img src="https://mc.yandex.ru/watch/112528267" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 <script>
   /* Красим страницу в палитру первого товара до первой отрисовки — без вспышки белого. */
   (function () {
@@ -263,19 +271,6 @@
 </style>
 </head>
 <body>
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=112528267', 'ym');
-
-    ym(112528267, 'init', {ssr:true, clickmap:true, referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/112528267" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
 <div class="scene" id="scene">
   <div class="cover" id="cover" aria-hidden="true"></div>
   <header class="top">
@@ -554,13 +549,13 @@
   /* Аналитика: заходы + клики по таблеткам с товаром и площадкой */
   var track = { view: function () {}, click: function () {} };
   /* сам счётчик подключён кодом из кабинета в начале body; здесь только цели и просмотры товаров */
-  if (window.METRIKA_ID && typeof ym === 'function') {
-    track.view = function (t) { ym(METRIKA_ID, 'hit', location.href, { title: t.название, params: { товар: t.ключ } }); };
+  if (typeof ym === 'function') {
+    track.view = function (t) { ym(112528267, 'hit', location.href, { title: t.название, params: { товар: t.ключ } }); };
     track.click = function (product, place) {
       var p = { товар: product, площадка: place };
-      ym(METRIKA_ID, 'reachGoal', 'marketplace_click', p);   // общая цель: любой уход на площадку
-      ym(METRIKA_ID, 'reachGoal', 'click_' + place, p);       // цель по площадке: click_wb / click_ozon / click_shop
-      ym(METRIKA_ID, 'params', { клик: p });                  // параметры визита: какой товар кликают чаще
+      ym(112528267, 'reachGoal', 'marketplace_click', p);   // общая цель: любой уход на площадку
+      ym(112528267, 'reachGoal', 'click_' + place, p);       // цель по площадке: click_wb / click_ozon / click_shop
+      ym(112528267, 'params', { клик: p });                  // параметры визита: какой товар кликают чаще
     };
   }
   pillsEl.addEventListener('click', function (e) {
