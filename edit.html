@@ -149,7 +149,7 @@
 <div class="bar">
   <div class="bar__in">
     <button class="btn" id="save" type="button">Сохранить на сайт</button>
-    <a class="btn btn--ghost" id="site" href="https://ilmon-dot.github.io/dasdorrio/" target="_blank" rel="noopener" style="display:inline-grid; place-items:center; text-decoration:none">Открыть сайт</a>
+    <a class="btn btn--ghost" id="site" href="https://dasdorrio.shop/" target="_blank" rel="noopener" style="display:inline-grid; place-items:center; text-decoration:none">Открыть сайт</a>
     <div class="status" id="status" role="status" aria-live="polite">Загружаю…</div>
   </div>
 </div>
@@ -416,7 +416,7 @@
   }
   el.save.addEventListener('click', function () { save(1); });
   /* «Открыть сайт» — всегда свежая версия, минуя кэш браузера */
-  $('site').addEventListener('click', function () { this.href = 'https://ilmon-dot.github.io/dasdorrio/?v=' + Date.now(); });
+  $('site').addEventListener('click', function () { this.href = 'https://dasdorrio.shop/?v=' + Date.now(); });
 
   /* ---------- токен ---------- */
   el.connect.addEventListener('click', function () {
