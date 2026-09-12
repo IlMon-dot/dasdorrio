@@ -213,6 +213,17 @@
     box-shadow:0 0 0 3px var(--bg), 0 0 0 6px var(--fg), 0 8px 16px -6px rgba(0,0,0,.6);
   }
   .rail button:focus-visible{outline-offset:4px}
+  .rail button.tw{transition:none}   /* пока кружок ведёт GSAP, CSS-переход выключен */
+
+  /* Подсказка у ленты: показывается один раз, при первом заходе, на несколько секунд */
+  .hint{
+    position:absolute; z-index:6; right:max(var(--rail-inset), env(safe-area-inset-right)); top:calc(var(--rail-bottom, 60%) + 10px);
+    display:flex; align-items:center; gap:8px;
+    height:40px; padding:0 14px; border-radius:999px; font-size:14px; font-weight:500; white-space:nowrap;
+    color:var(--fg); background:var(--pill-bg, rgba(0,0,0,.26)); border:1px solid var(--pill-line, rgba(255,255,255,.18));
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); pointer-events:none; opacity:0;
+  }
+  .hint svg{width:18px; height:18px; flex:none}
 
   /* Низкие экраны: миниатюры компактнее, чтобы лента умещалась над текстом */
   @media (max-height:700px) and (max-width:899px){
@@ -237,6 +248,7 @@
     h1{font-size:clamp(30px, 3vw, 46px)}
     .pills{margin-top:28px; gap:12px}
     .pill{height:56px; padding:0 24px 0 22px; font-size:17px}
+    .hint{height:44px; font-size:15px}
   }
   @media (min-width:1600px){
     h1{font-size:58px}
@@ -265,6 +277,7 @@
   </main>
 
   <nav class="rail" id="rail" aria-label="Выбор товара"></nav>
+  <div class="hint" id="hint" hidden aria-hidden="true">Выберите товар<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
   <noscript><p style="padding:20px">Для выбора товара нужен JavaScript. Все товары есть на Wildberries и Ozon по запросу «Dasdorrio».</p></noscript>
 </div>
 
@@ -407,7 +420,9 @@
   function placeRail() {
     var sceneTop = scene.getBoundingClientRect().top;
     var r = podium.getBoundingClientRect();
-    rail.style.setProperty('--rail-top', Math.round(r.top - sceneTop + r.height / 2) + 'px');
+    var railCy = Math.round(r.top - sceneTop + r.height / 2);
+    root.style.setProperty('--rail-top', railCy + 'px');
+    root.style.setProperty('--rail-bottom', Math.round(railCy + rail.offsetHeight / 2) + 'px');   // подсказка стоит под лентой
   }
   function relayout() { if (current >= 0) placeCover(items[current]); placeRail(); }
   window.addEventListener('resize', relayout);
@@ -480,6 +495,8 @@
         removeOld();
         L.layer.style.opacity = 1;
         if (hasGsap && !reduce) {
+          var thumbs = Array.prototype.slice.call(rail.children);
+          gsap.from(thumbs, Object.assign({ x: 24, opacity: 0, duration: .5, ease: 'power3.out', stagger: .06, delay: .35 }, pillTween(thumbs)));
           gsap.from(L.hero, { y: 36, opacity: 0, scale: .96, duration: .8, ease: 'power3.out' });
           gsap.from(copyBits, { y: 16, opacity: 0, duration: .5, ease: 'power2.out', stagger: .06, delay: .1 });
           gsap.from(pills, Object.assign({ y: 14, opacity: 0, duration: .45, ease: 'back.out(1.6)', stagger: .05, delay: .25 }, pillTween(pills)));
@@ -552,6 +569,31 @@
       }
     }).catch(function () {});
   } catch (e) { /* file:// */ }
+
+  /* Подсказка у ленты — один раз, при первом заходе; исчезает сама через 5 с или после первого касания ленты */
+  (function () {
+    var KEY = 'dasdorrio-hint', hint = document.getElementById('hint'), shown = false, done = false;
+    try { if (localStorage.getItem(KEY)) return; } catch (e) { return; }
+    function hide() {
+      if (done) return; done = true;
+      try { localStorage.setItem(KEY, '1'); } catch (e) { /* ничего */ }
+      if (hasGsap && !reduce && shown) gsap.to(hint, { opacity: 0, y: 8, duration: .3, onComplete: function () { hint.hidden = true; } });
+      else hint.hidden = true;
+    }
+    function show() {
+      if (shown || done) return; shown = true;
+      hint.hidden = false;
+      if (hasGsap && !reduce) {
+        gsap.fromTo(hint, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .5, ease: 'power2.out' });
+        gsap.to(hint, { y: -6, duration: .5, ease: 'sine.inOut', yoyo: true, repeat: 5, delay: .6 });   // покачивание к кружкам
+      } else { hint.style.opacity = 1; }
+      setTimeout(hide, 5500);
+    }
+    setTimeout(show, 1400);
+    rail.addEventListener('pointerdown', hide);
+    rail.addEventListener('focusin', hide);
+    window.addEventListener('hashchange', hide);
+  })();
 
   var startKey = location.hash.slice(1);
   var startIdx = items.findIndex(function (t) { return t.ключ === startKey; });
