@@ -185,6 +185,7 @@
     .pill:hover{transform:translateY(-3px); background:var(--pill-bg-hover, rgba(0,0,0,.4)); border-color:var(--pill-line-hover, rgba(255,255,255,.3))}
   }
   .pill:active{transform:translateY(1px) scale(.97); background:var(--pill-bg-hover, rgba(0,0,0,.4))}
+  .pill.tw{transition:none}   /* пока таблетку ведёт GSAP, CSS-переход выключен */
 
   /* Лента выбора: справа, под большой палец */
   .rail{
@@ -422,6 +423,12 @@
     });
   }
   function killFloat() { floaters.forEach(function (f) { f.kill(); }); floaters = []; }
+  /* Твины таблеток: на время твина класс tw (без CSS-перехода), в конце встроенные стили снимаются,
+     иначе transform из GSAP перебивает :hover и таблетка остаётся поднятой */
+  function pillTween(pills) {
+    pills.forEach(function (p) { p.classList.add('tw'); });
+    return { onComplete: function () { pills.forEach(function (p) { p.classList.remove('tw'); }); }, clearProps: 'transform,opacity' };
+  }
   /* Покой: товар мягко подпрыгивает над своим местом, тень под ним сжимается */
   function startFloat(hero, shadow) {
     if (!hasGsap || reduce) return;
@@ -475,7 +482,7 @@
         if (hasGsap && !reduce) {
           gsap.from(L.hero, { y: 36, opacity: 0, scale: .96, duration: .8, ease: 'power3.out' });
           gsap.from(copyBits, { y: 16, opacity: 0, duration: .5, ease: 'power2.out', stagger: .06, delay: .1 });
-          gsap.from(pills, { y: 14, opacity: 0, duration: .45, ease: 'back.out(1.6)', stagger: .05, delay: .25 });
+          gsap.from(pills, Object.assign({ y: 14, opacity: 0, duration: .45, ease: 'back.out(1.6)', stagger: .05, delay: .25 }, pillTween(pills)));
         }
         startFloat(L.hero, L.shadow);
         return;
@@ -485,7 +492,7 @@
         tl = gsap.timeline();
         tl.to(L.layer, { opacity: 1, duration: .4 }, 0);
         if (old.length) tl.to(old, { opacity: 0, duration: .4, onComplete: removeOld }, 0);
-        tl.from(copyBits.concat(pills), { opacity: 0, duration: .35 }, .1);
+        tl.from(copyBits.concat(pills), { opacity: 0, duration: .35, clearProps: 'opacity' }, .1);
         return;
       }
 
@@ -496,22 +503,19 @@
         .fromTo(L.shadow, { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'power2.out' }, .2)
         .to(copyBits, { y: -10, opacity: 0, duration: .22, ease: 'power2.in' }, 0)
         .fromTo(copyBits, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: .45, ease: 'power2.out', stagger: .06 }, .3)
-        .fromTo(pills, { y: 16, opacity: 0, scale: .96 }, { y: 0, opacity: 1, scale: 1, duration: .45, ease: 'back.out(1.6)', stagger: .05 }, .38)
+        .fromTo(pills, { y: 16, opacity: 0, scale: .96 }, Object.assign({ y: 0, opacity: 1, scale: 1, duration: .45, ease: 'back.out(1.6)', stagger: .05 }, pillTween(pills)), .38)
         .add(function () { removeOld(); startFloat(L.hero, L.shadow); }, .8);
       if (old.length) tl.to(old, { opacity: 0, duration: .5, ease: 'power2.in' }, .3);
     });
   }
 
-  /* Таблетки подпрыгивают под пальцем и курсором */
+  /* Таблетка пружинит под пальцем; подъём при наведении — обычный CSS :hover */
   if (hasGsap && !reduce) {
     pillsEl.addEventListener('pointerdown', function (e) {
       var pill = e.target.closest('.pill'); if (!pill) return;
-      gsap.fromTo(pill, { scale: .94 }, { scale: 1, duration: .5, ease: 'elastic.out(1, .45)' });
+      var lift = e.pointerType === 'mouse' ? -3 : 0;
+      gsap.fromTo(pill, { scale: .94, y: lift }, Object.assign({ scale: 1, y: lift, duration: .5, ease: 'elastic.out(1, .45)' }, pillTween([pill])));
     });
-    pillsEl.addEventListener('pointerenter', function (e) {
-      var pill = e.target.closest && e.target.closest('.pill'); if (!pill || e.pointerType === 'touch') return;
-      gsap.fromTo(pill, { y: 0 }, { y: -4, duration: .45, ease: 'back.out(3)' });
-    }, true);
   }
 
   /* Аналитика: заходы + клики по таблеткам с товаром и площадкой */
