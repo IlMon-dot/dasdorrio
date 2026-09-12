@@ -381,12 +381,23 @@
     var sceneTop = scene.getBoundingClientRect().top;
     var r = podium.getBoundingClientRect();
     var podiumCy = r.top - sceneTop + r.height / 2;
-    root.style.setProperty('--cover-max', Math.round(r.height * 0.92 / box[3]) + 'px');   // герой ≤ 92 % высоты подиума
+    var desktop = window.matchMedia('(min-width:900px)').matches;
+    /* герой не выше 92 % подиума и не шире полосы от левого поля до ленты кружков */
+    var railLeft = rail.getBoundingClientRect().left + 12;                 // 12 px — поле ленты, дальше кружки
+    var gutter = desktop ? (parseFloat(getComputedStyle(root).getPropertyValue('--gutter')) || 56) : 0;
+    var maxH = r.height * 0.92 / box[3];
+    var maxW = (railLeft - 10 - gutter) / box[2];
+    root.style.setProperty('--cover-max', Math.round(Math.min(maxH, maxW)) + 'px');
     var frame = cover.querySelector('.frame');
     var size = frame ? frame.offsetHeight : Math.max(window.innerWidth, window.innerHeight);
     var pc = box[1] + box[3] / 2;
     var cy = podiumCy - (pc - 0.5) * size;
     root.style.setProperty('--cover-cy', Math.round(cy) + 'px');
+    /* по горизонтали: правый край героя не заходит под ленту */
+    var cx = window.innerWidth * (desktop ? 0.6 : 0.48);
+    var heroRight = cx - size / 2 + (box[0] + box[2]) * size;
+    cx -= Math.max(0, heroRight - (railLeft - 10));
+    root.style.setProperty('--cover-cx', Math.round(cx) + 'px');
   }
   function placeRail() {
     var sceneTop = scene.getBoundingClientRect().top;

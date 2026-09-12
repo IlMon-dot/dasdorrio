@@ -359,31 +359,62 @@
   }
 
   /* ---------- запись ---------- */
-  function save() {
+  /* Перед записью берём свежую версию файла из репозитория (её могли обновить картинки и рамки героев),
+     накладываем на неё названия, кнопки и порядок из формы и записываем. Так правки не теряются,
+     даже если файл менялся после загрузки редактора. */
+  function mergeOnto(serverItems, myItems) {
+    var used = {}, merged = [];
+    myItems.forEach(function (m) {
+      var srv = null;
+      serverItems.forEach(function (x) { if (x.ключ === m.ключ) srv = x; });
+      if (!srv) return;
+      used[m.ключ] = true;
+      srv.название = m.название; srv.ссылки = m.ссылки;
+      merged.push(srv);
+    });
+    serverItems.forEach(function (x) { if (!used[x.ключ]) merged.push(x); });   // товары, добавленные не здесь, — в конец
+    return merged;
+  }
+  window.__dasdorrioMerge = mergeOnto;
+  function save(attempt) {
+    attempt = attempt || 1;
     var errors = validate();
     render();
     if (errors.length) { status('Не сохранено. ' + errors.join(' · '), 'bad'); return; }
-    var text = currentText();
-    try { parseProducts(text); } catch (e) { status('Файл не собрался, ничего не записано: ' + e.message, 'bad'); return; }
-    if (!state.online || !state.sha) { status('Нет подключения к репозиторию: введите токен и нажмите «Подключить».', 'bad'); return; }
-    el.save.disabled = true; status('Сохраняю…');
-    fetch(API, { method: 'PUT', headers: headers(true),
-      body: JSON.stringify({ message: 'Названия и ссылки обновлены через редактор', content: b64encode(text), sha: state.sha, branch: BRANCH }) })
-    .then(function (r) {
-      if (r.status === 409 || r.status === 422) {
-        status('Файл на сайте уже изменился кем-то ещё. Перезагружаю данные — повторите правки и сохраните снова.', 'bad');
-        return load();
-      }
-      if (!r.ok) throw httpError(r.status);
-      return r.json().then(function (j) {
-        state.sha = j.content && j.content.sha || state.sha;
-        state.source = text; state.dirty = false; updateBar();
-        status('Сохранено. Сайт обновится примерно через минуту — проверьте через «Открыть сайт».', 'ok');
-      });
+    if (!state.token) { status('Нет подключения к репозиторию: введите токен и нажмите «Подключить».', 'bad'); return; }
+    var mine = state.items;
+    el.save.disabled = true; status(attempt > 1 ? 'Файл только что обновился, сохраняю ещё раз…' : 'Сохраняю…');
+    var fresh;
+    fetch(API + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw httpError(r.status); return r.json(); })
+    .then(function (j) {
+      var serverSrc = b64decode(j.content);
+      var items = mergeOnto(parseProducts(serverSrc), mine);
+      var header = splitHeader(serverSrc), CRLF = String.fromCharCode(13, 10), eol = serverSrc.indexOf(CRLF) >= 0 ? CRLF : String.fromCharCode(10);
+      var text = serialize(items, header, eol);
+      parseProducts(text);                                   // файл обязан читаться, иначе ничего не пишем
+      fresh = { items: items, header: header, eol: eol, text: text, sha: j.sha };
+      return fetch(API, { method: 'PUT', headers: headers(true),
+        body: JSON.stringify({ message: 'Названия и ссылки обновлены через редактор', content: b64encode(text), sha: j.sha, branch: BRANCH }) });
     })
-    .catch(function (e) { status('Не сохранено: ' + e.message, 'bad'); el.save.disabled = false; });
+    .then(function (r) {
+      if (r.status === 409 || r.status === 422) throw new Error('conflict');
+      if (!r.ok) throw httpError(r.status);
+      return r.json();
+    })
+    .then(function (res) {
+      state.items = fresh.items; state.header = fresh.header; state.eol = fresh.eol; state.source = fresh.text;
+      state.sha = res.content && res.content.sha || fresh.sha; state.online = true; state.dirty = false;
+      render(); updateBar(); el.forget.hidden = false;
+      status('Сохранено. Сайт обновится примерно через минуту — проверьте через «Открыть сайт».', 'ok');
+    })
+    .catch(function (e) {
+      if (e.message === 'conflict' && attempt < 3) { save(attempt + 1); return; }
+      status('Не сохранено: ' + (e.message === 'conflict' ? 'файл меняется прямо сейчас, попробуйте через минуту.' : e.message) + ' Ваши правки остались в форме.', 'bad');
+      el.save.disabled = false;
+    });
   }
-  el.save.addEventListener('click', save);
+  el.save.addEventListener('click', function () { save(1); });
   /* «Открыть сайт» — всегда свежая версия, минуя кэш браузера */
   $('site').addEventListener('click', function () { this.href = 'https://ilmon-dot.github.io/dasdorrio/?v=' + Date.now(); });
 
