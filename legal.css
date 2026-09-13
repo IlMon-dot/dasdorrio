@@ -1,0 +1,66 @@
+/* Документы сайта (политики): спокойная тёмная страница в тоне первой сцены.
+   Без сторонних шрифтов и скриптов — страница не делает запросов за пределы сайта. */
+:root{
+  --bg:#1B2620; --bg2:#0F1915; --fg:#F4F8F2; --fg2:#A8BDB0; --accent:#B8F53C;
+  --line:rgba(255,255,255,.14);
+  --gutter:20px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%; background:var(--bg2)}
+body{
+  margin:0; background:var(--bg2); color:var(--fg);
+  font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent); color:var(--bg2)}
+:focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:6px}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:3px}
+a:hover{text-decoration-thickness:2px}
+
+.doc-top{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  max-width:46rem; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) var(--gutter) 0;
+}
+.doc-top .logo{display:inline-block; line-height:0}
+.doc-top .logo img{width:118px; height:auto; display:block}
+.doc-top .back{color:var(--fg); font-size:15px; text-decoration:none; padding:10px 0}
+.doc-top .back:hover{text-decoration:underline}
+
+.doc{max-width:46rem; margin:0 auto; padding:28px var(--gutter) 40px}
+.doc h1{
+  font-size:clamp(26px, 6vw, 38px); line-height:1.15; font-weight:800; letter-spacing:-0.01em;
+  margin:0 0 14px; text-wrap:balance;
+}
+.doc .lead{color:var(--fg2); font-size:17px; margin:0 0 8px}
+.doc h2{font-size:20px; line-height:1.3; font-weight:700; margin:36px 0 10px; text-wrap:balance}
+.doc p{margin:0 0 10px}
+.doc ul{margin:0 0 12px; padding-left:1.25em}
+.doc li{margin:0 0 6px}
+.doc li::marker{color:var(--fg2)}
+.doc address{
+  font-style:normal; margin:4px 0 14px; padding:14px 16px;
+  border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.03);
+}
+.doc .item{font-weight:700; margin-top:18px}
+.doc .edition{color:var(--fg2); margin-top:36px}
+
+.table-wrap{overflow-x:auto; margin:6px 0 16px; border:1px solid var(--line); border-radius:14px}
+.doc table{width:100%; min-width:560px; border-collapse:collapse; font-size:15px; line-height:1.45}
+.doc th, .doc td{text-align:left; vertical-align:top; padding:10px 14px; border-bottom:1px solid var(--line)}
+.doc tr:last-child td{border-bottom:0}
+.doc th{color:var(--fg2); font-weight:600}
+.doc code{font-family:ui-monospace, "Cascadia Mono", Consolas, monospace; font-size:.92em; white-space:nowrap}
+
+.doc-foot{
+  max-width:46rem; margin:0 auto; padding:18px var(--gutter) calc(24px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line); color:var(--fg2); font-size:14px; line-height:1.5;
+}
+.doc-foot p{margin:0 0 4px}
+.doc-foot nav{display:flex; flex-wrap:wrap; gap:6px 18px; margin-top:8px}
+.doc-foot a{color:var(--fg)}
+
+@media (min-width:900px){
+  :root{--gutter:32px}
+  .doc-top .logo img{width:140px}
+  .doc{padding-top:40px}
+}
