@@ -1,11 +1,12 @@
-# Цены площадок: раз в день scripts/prices.mjs берёт цены WB, Ozon и dasdorrio.ru,
-# бот коммитит prices.js и просит GitHub пересобрать сайт (push от GITHUB_TOKEN сборку сам не запускает).
+# Цены площадок: scripts/prices.mjs берёт цены WB, Ozon и dasdorrio.ru в часы из prices-settings.json
+# (расписание.часыМСК), бот коммитит prices.js и просит GitHub пересобрать сайт (push от GITHUB_TOKEN сборку сам не запускает).
+# Cron будит скрипт каждый час: GitHub запускает по расписанию с опозданием, а когда пора собирать, решает сам скрипт.
 # Репозиторий публичный — лог видят все, поэтому ключи Ozon только в Secrets, скрипт их не печатает.
 name: Цены
 
 on:
   schedule:
-    - cron: '17 3 * * *'   # 03:17 UTC = 06:17 МСК
+    - cron: '7 * * * *'    # каждый час в :07 UTC; вне расписания скрипт выходит без запросов и записи
   workflow_dispatch:
 
 permissions:
@@ -21,7 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # вершина ветки на старте, а не коммит, с которым запуск встал в очередь concurrency: иначе ждавший запуск
+      # не видит prices.js предыдущего, собирает тот же слот второй раз и падает на конфликте при push
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - uses: actions/setup-node@v4
         with:

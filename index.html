@@ -23,8 +23,9 @@
 
 <script>
   /* Данные подключаются с меткой минуты: GitHub Pages кэширует файлы на 10 минут,
-     а правки из редактора должны быть видны сразу. */
+     а правки из редактора должны быть видны сразу. Цены площадок (prices.js) — так же; нет файла — нет цен WB и dasdorrio.ru, ручная цена Ozon из products.js остаётся. */
   document.write('<script src="products.js?v=' + Math.floor(Date.now() / 60000) + '"><\/script>');
+  document.write('<script src="prices.js?v=' + Math.floor(Date.now() / 60000) + '"><\/script>');
 </script>
 <script>
   /* Адрес просмотра для Метрики. При заходе без решётки на экране всё равно показан первый товар,
@@ -198,6 +199,9 @@
     width:12px; height:12px; border-radius:50%; flex:none; background:var(--c);
     box-shadow:0 0 0 2px var(--pill-line, rgba(255,255,255,.18));
   }
+  /* Цена — второй строкой под названием площадки: таблетка не шире, ряды таблеток те же */
+  .pill .price{display:block; font-size:14px; line-height:1.15; font-variant-numeric:tabular-nums}
+  .pill .price--muted{color:var(--fg2)}   /* «нет в наличии» и «цена на площадке» — тише цены */
   .pill--wb{--c:var(--wb)}
   .pill--ozon{--c:var(--ozon)}
   .pill--market{--c:var(--market)}
@@ -208,6 +212,8 @@
   }
   .pill:active{transform:translateY(1px) scale(.97); background:var(--pill-bg-hover, rgba(0,0,0,.4))}
   .pill.tw{transition:none}   /* пока таблетку ведёт GSAP, CSS-переход выключен */
+  /* Строка под таблетками: дата цен и оговорки; есть только у товара с показанной ценой */
+  .price-note{margin:10px 0 0; font-size:14px; line-height:1.4; color:var(--fg2); text-wrap:pretty}
 
   /* Лента выбора: справа, под большой палец */
   .rail{
@@ -257,6 +263,7 @@
   }
   .site-foot p{margin:0}
   .site-foot p + p{margin-top:2px}
+  .site-foot .terms{margin-top:8px}
   .site-foot a{color:var(--fg); text-decoration-thickness:1px; text-underline-offset:3px}
   .site-foot .docs{display:flex; flex-wrap:wrap; gap:0 18px; margin-top:8px}
   .site-foot .docs a{display:inline-block; padding:6px 0}
@@ -288,6 +295,11 @@
   }
 
   /* Низкие экраны: миниатюры компактнее, чтобы лента умещалась над текстом */
+  /* Узкие телефоны: таблетки плотнее, иначе «цена на площадке» и «нет в наличии» уводят их в третий ряд под плашку */
+  @media (max-width:389px){
+    .pills{gap:8px}
+    .pill{padding:0 12px 0 10px; gap:8px}
+  }
   @media (max-height:700px) and (max-width:899px){
     :root{--thumb:50px; --rail-gap:8px}
   }
@@ -309,10 +321,13 @@
       min-height:100dvh;
     }
     .podium{min-height:min(38vh, 400px); margin-right:0}
-    .copy{padding-top:0; max-width:540px}
+    .copy{padding-top:0; max-width:640px}   /* три таблетки с ценой — в один ряд */
+    .copy h1{max-width:540px}
     h1{font-size:clamp(30px, 3vw, 46px)}
     .pills{margin-top:28px; gap:12px}
     .pill{height:56px; padding:0 24px 0 22px; font-size:17px}
+    .pill .price{font-size:15px}
+    .price-note{margin-top:14px}
     .hint{height:44px; font-size:15px}
   }
   @media (min-width:1600px){
@@ -338,6 +353,7 @@
     <div class="copy" id="copy">
       <h1 id="title"></h1>
       <nav class="pills" id="pills" aria-label="Где купить"></nav>
+      <p class="price-note" id="price-note" hidden></p>
     </div>
   </main>
 
@@ -351,6 +367,7 @@
     <p>Владелец сайта: ИП Алферов Илья Игоревич, ОГРНИП 322435000022322</p>
     <p>Место нахождения и адрес: 427966, Удмуртская Республика, г. Сарапул, ул. Маяковского, д. 5</p>
     <p>Почта для обращений и заявлений правообладателей: <a href="mailto:Ilya_alferov@internet.ru">Ilya_alferov@internet.ru</a></p>
+    <p class="terms" id="price-terms" hidden>Цены на сайте справочные и не являются публичной офертой. Актуальная цена и условия покупки — на странице площадки.</p>
   </div>
   <nav class="docs" aria-label="Документы">
     <a href="policy.html">Политика обработки персональных данных</a>
@@ -393,6 +410,7 @@
   var scene = document.getElementById('scene');
   var titleEl = document.getElementById('title');
   var pillsEl = document.getElementById('pills');
+  var priceNote = document.getElementById('price-note');
   var rail = document.getElementById('rail');
   var logo = document.getElementById('logo');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
@@ -408,6 +426,33 @@
   var IMG_V = typeof ВЕРСИЯ_КАРТИНОК !== 'undefined' ? ВЕРСИЯ_КАРТИНОК : '1';
   function pic(u) { return u ? u + '?v=' + IMG_V : u; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* Вторая строка таблетки. WB и dasdorrio.ru — из prices.js (пишет скрипт по расписанию): свежая цена
+     (не старше 48 часов); «нет в наличии» — только если площадка сама так ответила; иначе «цена на площадке»; нет записи — второй строки нет.
+     Ozon — из поля товара ценаOzon, его вписывает владелец в редакторе (цена с Ozon Картой из API не берётся):
+     цена, «нет в наличии», «цена на площадке» или «скрыть»; поля нет — «цена на площадке» */
+  var PRICES = typeof ЦЕНЫ !== 'undefined' && ЦЕНЫ && ЦЕНЫ.товары || {};
+  var PRICED = { wb: 1, shop: 1 };
+  function fresh(iso) { var ms = Date.parse(iso); return ms > 0 && Date.now() - ms < 48 * 3600000; }
+  function priceOf(t, kind) {
+    if (kind === 'ozon') {
+      var o = t.ценаOzon || {};
+      if (o.показ === 'цена' && o.цена > 0) return { цена: o.цена };   // без даты: в строку цен дата не идёт
+      return o.показ === 'скрыть' ? null : o.показ === 'нет в наличии' ? 'нет' : 'площадка';
+    }
+    var p = PRICED[kind] && PRICES[t.ключ] && PRICES[t.ключ][kind];
+    if (!p) return null;
+    if (p.цена > 0 && fresh(p.получено)) return p;
+    if (!(p.цена > 0) && p.ошибка === 'нет в наличии' && fresh(p.проверено)) return 'нет';
+    return 'площадка';
+  }
+  function rub(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0') + '\u00A0₽'; }
+  function mskDate(ms) {                                    // ДД.ММ по Москве: UTC+3 круглый год
+    var d = new Date(ms + 3 * 3600000);
+    return ('0' + d.getUTCDate()).slice(-2) + '.' + ('0' + (d.getUTCMonth() + 1)).slice(-2);
+  }
+  /* оговорка «цены справочные» в подвале — только когда цены подключены или у товара есть ручная цена Ozon */
+  if (typeof ЦЕНЫ !== 'undefined' || items.some(function (t) { return t.ценаOzon && t.ценаOzon.показ === 'цена'; })) document.getElementById('price-terms').hidden = false;
 
   /* Лента миниатюр */
   items.forEach(function (t, i) {
@@ -444,14 +489,27 @@
   }
 
   function buildPills(t) {
-    var html = '';
+    var html = '', dates = [], priced = false;
     (t.ссылки || []).forEach(function (l) {
       if (!l || !l.адрес) return;
       var kind = KIND[l.вид] ? l.вид : 'other';
+      /* цена — внутри той же ссылки: скринридер читает «Wildberries 7 590 ₽», цели Метрики не меняются */
+      var p = priceOf(t, kind), price = '';
+      if (p === 'нет') price = ' <span class="price price--muted">нет в\u00A0наличии</span>';
+      else if (p === 'площадка') price = ' <span class="price price--muted">цена на\u00A0площадке</span>';
+      else if (p) {
+        priced = true;
+        if (p.получено) dates.push(Date.parse(p.получено));
+        price = ' <span class="price">' + rub(p.цена) + '</span>';
+      }
       html += '<a class="pill ' + (KIND[kind] || 'pill--other') + '" href="' + esc(l.адрес) + '" rel="noopener" data-place="' + kind + '" data-product="' + esc(t.ключ) + '">' +
-              COIN + '<span>' + esc(l.имя || l.адрес) + '</span></a>';
+              COIN + '<span>' + esc(l.имя || l.адрес) + price + '</span></a>';
     });
     pillsEl.innerHTML = html;
+    /* строка цен: самая ранняя дата среди цен из prices.js (у ручной цены Ozon даты нет); нет ни одной цены — строки нет */
+    priceNote.hidden = !priced;
+    priceNote.textContent = !priced ? '' : dates.length ? 'Цены на\u00A0' + mskDate(Math.min.apply(null, dates)) + '\u00A0· на площадках могут отличаться' :
+      'Цены на\u00A0площадках могут отличаться';
   }
 
   function preload(src) {
@@ -588,7 +646,7 @@
       titleEl.textContent = t.название;
       buildPills(t);
       placeRail();
-      var pills = Array.prototype.slice.call(pillsEl.children);
+      var pills = Array.prototype.slice.call(pillsEl.children).concat(priceNote);   // строка цен появляется вместе с таблетками
       var copyBits = [titleEl];
       var removeOld = function () { old.forEach(function (d) { d.remove(); }); };
 

@@ -80,10 +80,34 @@
   .link .name{grid-area:name}
   .link .addr{grid-area:addr; display:flex; gap:8px; align-items:center}
   .link .addr input{flex:1}
-  .link .open{display:grid; place-items:center; width:40px; height:40px; border-radius:10px; border:1px solid var(--line); text-decoration:none; font-size:18px; flex:none}
+  .open{display:grid; place-items:center; width:40px; height:40px; border-radius:10px; border:1px solid var(--line); text-decoration:none; font-size:18px; flex:none}
+  .open:not([href]){opacity:.3; pointer-events:none}
   .link .ctl{grid-area:ctl; display:flex; gap:6px; align-items:center}
   .link .ctl .spacer{flex:1}
   .add{margin-top:10px}
+  .pf{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .pf input{flex:1 1 200px; min-width:0}
+  .pnote{font-size:13px; color:var(--muted); margin-top:6px}
+  .pnote:empty{display:none}
+  .pnote.ok{color:var(--ok)}
+  .pnote.bad{color:var(--bad)}
+  .grid2{display:grid; gap:0 10px}
+  .oz .grid2{align-items:end}
+  /* предпросмотр кнопки Ozon — как таблетка на сайте: название и вторая строка */
+  .ozprev{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:10px}
+  .opill{display:inline-flex; align-items:center; gap:10px; height:52px; padding:0 20px 0 14px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.05); white-space:nowrap; line-height:1.2}
+  .opill .coin{width:12px; height:12px; border-radius:50%; flex:none; background:var(--ozon); box-shadow:0 0 0 2px rgba(255,255,255,.18)}
+  .oprice{display:block; font-size:14px; line-height:1.15; font-variant-numeric:tabular-nums}
+  .oprice--muted{color:var(--muted)}
+  .ozcap{font-size:13px; color:var(--muted)}
+  .ozcap.bad{color:var(--bad)}
+  .tabs{display:flex; gap:4px; padding:4px; margin:0 0 14px; background:var(--card); border:1px solid var(--line); border-radius:14px}
+  .tab{flex:1; height:44px; border:0; border-radius:10px; background:transparent; color:var(--muted); font:inherit; cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--line); color:var(--fg); font-weight:700}
+  .hours{display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; margin-top:12px}
+  .hour{height:44px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--muted); font:inherit; font-variant-numeric:tabular-nums; cursor:pointer}
+  .hour[aria-pressed="true"]{background:rgba(76,141,255,.22); border-color:var(--accent); color:#fff; font-weight:700}
+  .tab:focus-visible, .hour:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
   .bar{
     position:fixed; left:0; right:0; bottom:0; z-index:5;
@@ -96,10 +120,13 @@
   .status.bad{color:var(--bad)}
   pre{white-space:pre-wrap; word-break:break-word; font-size:12px; color:var(--muted); background:#0f1113; border:1px solid var(--line); border-radius:10px; padding:12px; max-height:50vh; overflow:auto}
   [hidden]{display:none !important}
+  [inert]{opacity:.6}
   @media (min-width:600px){
     .link{grid-template-columns:14px 180px 1fr auto; grid-template-areas:"coin kind name ctl" "addr addr addr addr"}
     .link .ctl{justify-content:flex-end}
     .link .ctl .spacer{display:none}
+    .grid2{grid-template-columns:1fr 1fr}
+    .hours{grid-template-columns:repeat(12, 1fr)}
   }
 </style>
 </head>
@@ -109,7 +136,7 @@
     <img src="logo/dasdorrio-light.webp" width="340" height="171" alt="Dasdorrio">
     <div>
       <h1>Редактор товаров</h1>
-      <div class="muted">Названия, кнопки и ссылки. Картинки и новые товары — через агента.</div>
+      <div class="muted">Названия, кнопки, ссылки и цены. Картинки и новые товары — через агента.</div>
     </div>
   </header>
 
@@ -130,15 +157,58 @@
         <li>Откройте <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> (это Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token).</li>
         <li>Token name — любое, например «редактор сайта». Expiration — Custom, дата через год. Когда срок выйдет, создайте новый так же.</li>
         <li>Repository access → <b>Only select repositories</b> → выберите <b>dasdorrio</b>.</li>
-        <li>Permissions → Repository permissions → <b>Contents</b> → <b>Read and write</b>. Больше ничего не включайте.</li>
+        <li>Permissions → Repository permissions → <b>Contents</b> → <b>Read and write</b>.</li>
+        <li>Необязательно: для кнопки «Обновить цены сейчас» там же <b>Actions</b> → <b>Read and write</b>. Больше ничего не включайте.</li>
         <li>Generate token → скопируйте строку <code>github_pat_…</code> (показывается один раз) → вставьте сюда → «Подключить».</li>
       </ol>
       <p class="warn">Токен даёт право менять файлы этого репозитория — никому его не пересылайте. Он хранится только в вашем браузере, в код сайта не попадает.</p>
+      <p class="warn">Ключи Ozon (Client ID и Api-Key) в редактор не вводятся — они хранятся только в <a href="https://github.com/IlMon-dot/dasdorrio/settings/secrets/actions" target="_blank" rel="noopener">секретах GitHub</a>.</p>
     </details>
   </section>
 
-  <p class="muted" id="hint" style="margin:0 0 10px">Порядок карточек = порядок в ленте на сайте. Первый товар показывается при открытии.</p>
-  <div id="list"></div>
+  <div class="tabs" role="tablist" aria-label="Разделы редактора">
+    <button class="tab" type="button" role="tab" id="tabLinks" data-tab="links" aria-controls="paneLinks" aria-selected="true">Товары и кнопки</button>
+    <button class="tab" type="button" role="tab" id="tabPrices" data-tab="prices" aria-controls="panePrices" aria-selected="false" tabindex="-1">Цены</button>
+  </div>
+
+  <div id="paneLinks" role="tabpanel" aria-labelledby="tabLinks">
+    <p class="muted" id="hint" style="margin:0 0 10px">Порядок карточек = порядок в ленте на сайте. Первый товар показывается при открытии.</p>
+    <div id="list"></div>
+  </div>
+
+  <div id="panePrices" role="tabpanel" aria-labelledby="tabPrices" hidden>
+    <section class="panel">
+      <h2>Сервис цен</h2>
+      <p class="muted" id="lastRun" style="margin:0">Загружаю цены…</p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn btn--ghost" id="run" type="button">Обновить цены сейчас</button>
+        <a class="muted" href="https://github.com/IlMon-dot/dasdorrio/actions/workflows/prices.yml" target="_blank" rel="noopener">Журнал запусков</a>
+      </div>
+      <p class="pnote" id="setNote" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Когда обновлять цены</h2>
+      <p class="muted" style="margin:0">Часы по Москве, можно выбрать несколько. Записывается кнопкой «Сохранить на сайт».</p>
+      <div class="hours" id="hours" role="group" aria-label="Часы обновления цен по Москве"></div>
+      <p class="pnote" id="schedNote" aria-live="polite"></p>
+    </section>
+
+    <h2 style="margin:22px 0 4px">Цены у кнопок</h2>
+    <p class="muted" style="margin:0 0 10px">Wildberries и dasdorrio.ru: вставьте ссылку со страницы товара в любом виде или только номер. Метки отбросятся — в products.js запишется только артикул или адрес. Пустое поле — у этой кнопки цены не будет. Ozon: выберите, что показать у кнопки; цену с Ozon Картой впишите сами — сама она не обновляется.</p>
+    <div id="plist"></div>
+
+    <section class="panel" id="setPanel">
+      <h2>Показ цен</h2>
+      <p class="muted" style="margin:0">Настройки записываются общей кнопкой «Сохранить на сайт» и применяются при следующем обновлении цен.</p>
+      <div class="grid2">
+        <label class="field"><span>Регион WB — код dest (Москва: -1257786)</span><input id="wbDest" spellcheck="false" autocomplete="off" placeholder="-1257786"></label>
+        <label class="field"><span>Подпись региона</span><input id="wbDestName" autocomplete="off" placeholder="Москва"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="showWb"> Показывать цену Wildberries</label>
+      <label class="check"><input type="checkbox" id="showShop"> Показывать цену dasdorrio.ru</label>
+    </section>
+  </div>
 
   <details class="panel">
     <summary style="margin:0">Что будет записано в products.js</summary>
@@ -157,17 +227,32 @@
 <script>
 (function () {
   'use strict';
-  var REPO = 'IlMon-dot/dasdorrio', FILE = 'products.js', BRANCH = 'main';
-  var API = 'https://api.github.com/repos/' + REPO + '/contents/' + FILE;
+  var REPO = 'IlMon-dot/dasdorrio', FILE = 'products.js', SETTINGS = 'prices-settings.json', BRANCH = 'main';
+  var API = 'https://api.github.com/repos/' + REPO;
   var KINDS = [['wb', 'Wildberries'], ['ozon', 'Ozon'], ['market', 'Яндекс Маркет'], ['shop', 'dasdorrio.ru'], ['other', 'Другая']];
   var KIND_NAME = {}; KINDS.forEach(function (k) { KIND_NAME[k[0]] = k[1]; });
   var DEFAULT_NAMES = KINDS.map(function (k) { return k[1]; }).concat(['Ссылка']);
-  var STORE = 'dasdorrio-editor-token';
+  var STORE = 'dasdorrio-editor-token', TAB_STORE = 'dasdorrio-editor-tab';
+  /* площадки с ценой из prices.js: ключ в «площадки», подпись поля, подсказка. SKU Ozon в форме нет:
+     цену Ozon владелец вписывает сам (поле ценаOzon), а «площадки.ozon» из файла не трогаем */
+  var PLACES = [['wb', 'Ссылка на Wildberries', 'https://www.wildberries.ru/catalog/…'], ['shop', 'Ссылка на dasdorrio.ru', 'https://dasdorrio.ru/products/…']];
+  /* ценаOzon: что показать второй строкой у кнопки Ozon; поля нет — «цена на площадке» */
+  var OZON = [['цена', 'Цена'], ['нет в наличии', 'Нет в наличии'], ['цена на площадке', 'Цена на площадке'], ['скрыть', 'Не показывать']];
+  /* prices-settings.json: поля, которые правит редактор, и их значения, если в файле их нет; ozon не правим — Ozon скрипт не запрашивает */
+  var SET_DEFAULT = { wb: { показывать: true, регион: -1257786, регионИмя: 'Москва' }, shop: { показывать: true }, расписание: { часыМСК: [6] } };
 
   var $ = function (id) { return document.getElementById(id); };
-  var el = { token: $('token'), connect: $('connect'), remember: $('remember'), forget: $('forget'), list: $('list'),
-             save: $('save'), status: $('status'), preview: $('preview') };
-  var state = { token: '', header: '', eol: '\n', sha: null, items: [], source: '', dirty: false, online: false };
+  var el = { token: $('token'), connect: $('connect'), remember: $('remember'), forget: $('forget'), list: $('list'), plist: $('plist'),
+             save: $('save'), status: $('status'), preview: $('preview'),
+             setPanel: $('setPanel'), wbDest: $('wbDest'), wbDestName: $('wbDestName'), showWb: $('showWb'), showShop: $('showShop'),
+             run: $('run'), setNote: $('setNote'),
+             tabs: document.querySelectorAll('.tab'), paneLinks: $('paneLinks'), panePrices: $('panePrices'), hours: $('hours'), schedNote: $('schedNote'), lastRun: $('lastRun') };
+  var state = { token: '', header: '', eol: '\n', sha: null, items: [], source: '', dirty: false, online: false, saving: false,
+                basePlaces: {},                    // «площадки» по ключу товара, как в загруженном файле
+                baseOzon: {},                      // ценаOzon по ключу товара (JSON), как в загруженном файле
+
+                set: null, setBase: null,          // настройки цен: то, что в форме, и то, что было загружено
+                prices: undefined, pricesMsg: '' };   // ЦЕНЫ из prices.js с сайта; null — файла нет или не прочитан
 
   /* ---------- утилиты ---------- */
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -181,6 +266,10 @@
               404: 'Репозиторий или файл не найден: проверьте, что токену выдан доступ к dasdorrio.' };
     return new Error(m[code] || ('GitHub ответил ошибкой ' + code + '.'));
   }
+  function eolOf(src) { return String(src).indexOf('\r\n') >= 0 ? '\r\n' : '\n'; }
+  function note(node, text, kind) { node.textContent = text; node.className = 'pnote' + (kind ? ' ' + kind : ''); }
+  function money(n) { return Number(n).toLocaleString('ru-RU') + ' ₽'; }
+  function msk(iso) { var d = new Date(iso); return isNaN(d) ? '?' : d.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '') + ' по Москве'; }
 
   /* ---------- разбор и сборка products.js ---------- */
   function parseProducts(src) {
@@ -199,12 +288,25 @@
     if (typeof v === 'object') return '{ ' + Object.keys(v).map(function (k) { return k + ': ' + val(v[k]); }).join(', ') + ' }';
     return 'null';
   }
+  /* «площадки» пишутся одной строкой перед «ссылки»: wb, ozon, shop по порядку, пустые значения не пишем */
+  function cleanPlaces(p) {
+    var out = {}; p = p || {};
+    ['wb', 'ozon', 'shop'].concat(Object.keys(p)).forEach(function (k) {
+      var v = typeof p[k] === 'string' ? p[k].trim() : p[k];
+      if (v != null && v !== '') out[k] = v;
+    });
+    return out;
+  }
   function serialize(items, header, eol) {
     var L = ['const ТОВАРЫ = ['];
     items.forEach(function (t) {
       L.push('  {');
       Object.keys(t).forEach(function (k) {
+        if (k === 'площадки' || k === 'ценаOzon') return;
         if (k === 'ссылки') {
+          var pl = cleanPlaces(t.площадки);
+          if (Object.keys(pl).length) L.push('    площадки: ' + val(pl) + ',');
+          if (t.ценаOzon != null) L.push('    ценаOzon: ' + val(t.ценаOzon) + ',');   // одной строкой после «площадки»
           L.push('    ссылки: [');
           t.ссылки.forEach(function (l) { L.push('      ' + val({ вид: l.вид, имя: l.имя, адрес: l.адрес }) + ','); });
           L.push('    ],');
@@ -227,6 +329,109 @@
   }
   function isDefaultName(n) { return !String(n || '').trim() || DEFAULT_NAMES.indexOf(String(n).trim()) >= 0; }
   function moveInArray(arr, i, d) { var j = i + d; if (j < 0 || j >= arr.length) return false; var x = arr[i]; arr[i] = arr[j]; arr[j] = x; return true; }
+  /* родная ссылка на товар в любом виде (с метками, без https://) или просто номер → идентификатор для «площадки»:
+     артикул WB или адрес на dasdorrio.ru без «?» и «#». Ответ { id } (пустой — поле пустое) или { error } */
+  function parsePlace(p, raw) {
+    var s = String(raw == null ? '' : raw).trim(), u, host, m;
+    var bad = { wb: 'нужна ссылка на товар Wildberries (…/catalog/<артикул>/…) или артикул цифрами',
+                shop: 'нужна ссылка на товар dasdorrio.ru/products/…' }[p];
+    if (!s) return { id: '' };
+    if (p === 'wb' && /^[1-9]\d*$/.test(s)) return { id: s };
+    try { u = new URL(/^https?:\/\//i.test(s) ? s : 'https://' + s); } catch (e) { return { error: bad }; }
+    host = u.hostname.toLowerCase().replace(/^www\./, '');
+    if (p === 'wb' && /(^|\.)(wildberries|wb)\.ru$/.test(host)) m = u.pathname.match(/^\/catalog\/([1-9]\d*)(?:\/|$)/);
+    if (p === 'shop' && host === 'dasdorrio.ru' && /^\/products\/[^\/]+\/?$/.test(u.pathname) && !/utm/i.test(u.pathname)) return { id: 'https://dasdorrio.ru' + u.pathname };
+    return m ? { id: m[1] } : { error: bad };
+  }
+  /* чистая ссылка из идентификатора: без меток, её можно открывать — статистику не портит */
+  function placeUrl(p, id) {
+    return !id ? '' : p === 'wb' ? 'https://www.wildberries.ru/catalog/' + id + '/detail.aspx' : id;
+  }
+  /* что сейчас выбрано для кнопки Ozon; поля нет или значение незнакомое — «цена на площадке», как на сайте */
+  function ozonMode(t) {
+    var m = (t.ценаOzon || {}).показ;
+    return OZON.some(function (o) { return o[0] === m; }) ? m : 'цена на площадке';
+  }
+  function ozonPriceOk(o) { return Number.isInteger(o.цена) && o.цена > 0 && o.цена < 1e7; }   // целые рубли, меньше 10 млн
+  /* «площадки», записанные в файл мимо редактора ссылкой или с метками (скрипт цен такие отвергает), сразу сводим
+     к идентификатору; ответ — было ли что сводить: тогда файл ждёт «Сохранить на сайт». Нераспознанное не трогаем */
+  function cleanIds(items) {
+    var changed = false;
+    items.forEach(function (t) {
+      PLACES.forEach(function (p) {
+        var v = (t.площадки || {})[p[0]], r = parsePlace(p[0], v);
+        if (r.id && String(v).trim() !== r.id) { t.площадки[p[0]] = r.id; changed = true; }
+      });
+    });
+    return changed;
+  }
+
+  /* ---------- настройки цен (prices-settings.json) ---------- */
+  function normSettings(raw) {
+    var s = JSON.parse(JSON.stringify(raw && typeof raw === 'object' ? raw : {}));
+    Object.keys(SET_DEFAULT).forEach(function (p) {
+      if (!s[p] || typeof s[p] !== 'object') s[p] = {};
+      Object.keys(SET_DEFAULT[p]).forEach(function (f) { if (s[p][f] == null) s[p][f] = SET_DEFAULT[p][f]; });
+    });
+    var h = cleanHours(s.расписание.часыМСК);
+    s.расписание.часыМСК = h.length ? h : [6];   // нет часов — скрипт обновляет в 06:00
+    return s;
+  }
+  /* часы обновления: целые 0–23 по порядку, без повторов */
+  function cleanHours(list) {
+    return (Array.isArray(list) ? list : []).filter(function (h, i, a) { return Number.isInteger(h) && h >= 0 && h <= 23 && a.indexOf(h) === i; })
+      .sort(function (a, b) { return a - b; });
+  }
+  function hoursText(list) {   // [6, 12, 18] → «06:00, 12:00 и 18:00»
+    var t = list.map(function (h) { return (h < 10 ? '0' : '') + h + ':00'; });
+    return t.length > 1 ? t.slice(0, -1).join(', ') + ' и ' + t[t.length - 1] : t.join('');
+  }
+  function settingsDirty() { return !!state.set && JSON.stringify(state.set) !== JSON.stringify(state.setBase); }
+  /* на свежий файл с GitHub кладём только поля, изменённые в форме, — остальное (например, настройку Ozon,
+     которую агент прописал после открытия редактора) не затираем */
+  function mergeSettings(server, base, mine) {
+    Object.keys(SET_DEFAULT).forEach(function (p) {
+      Object.keys(SET_DEFAULT[p]).forEach(function (f) {
+        if (JSON.stringify(mine[p][f]) === JSON.stringify(base[p][f])) return;   // часы — одно поле, сравниваются целиком
+        if (!server[p] || typeof server[p] !== 'object') server[p] = {};
+        server[p][f] = mine[p][f];
+      });
+    });
+    return server;
+  }
+  function settingsText(s, eol) {   // каждая площадка — одной строкой, как в файле
+    return ('{\n' + Object.keys(s).map(function (k) {
+      var v = s[k], one = v && typeof v === 'object' && !Array.isArray(v)
+        ? '{ ' + Object.keys(v).map(function (f) {
+            var x = v[f];
+            return JSON.stringify(f) + ': ' + (Array.isArray(x) ? '[' + x.map(function (y) { return JSON.stringify(y); }).join(', ') + ']' : JSON.stringify(x));
+          }).join(', ') + ' }'
+        : JSON.stringify(v);
+      return '  ' + JSON.stringify(k) + ': ' + one;
+    }).join(',\n') + '\n}\n').replace(/\n/g, eol);
+  }
+  function renderSettings() {
+    var s = state.set;
+    el.wbDest.value = s.wb.регион; el.wbDestName.value = s.wb.регионИмя;
+    el.showWb.checked = s.wb.показывать !== false; el.showShop.checked = s.shop.показывать !== false;
+    Array.prototype.forEach.call(el.hours.children, function (b) { b.setAttribute('aria-pressed', s.расписание.часыМСК.indexOf(+b.getAttribute('data-h')) >= 0); });
+    paintSchedule();
+  }
+  function paintSchedule() {
+    var hs = state.set.расписание.часыМСК;
+    if (hs.length) note(el.schedNote, 'Цены обновятся в ' + hoursText(hs) + ' по Москве; GitHub может запускать с задержкой до получаса.');
+    else note(el.schedNote, 'Выберите хотя бы один час — без него настройки не сохранятся.', 'bad');
+  }
+  function readSettings() {
+    if (!state.set) return;
+    var s = state.set, dest = el.wbDest.value.trim();
+    s.wb.регион = /^-?\d+$/.test(dest) ? Number(dest) : dest;
+    s.wb.регионИмя = el.wbDestName.value;
+    s.wb.показывать = el.showWb.checked; s.shop.показывать = el.showShop.checked;
+    s.расписание.часыМСК = Array.prototype.filter.call(el.hours.children, function (b) { return b.getAttribute('aria-pressed') === 'true'; })
+      .map(function (b) { return +b.getAttribute('data-h'); });
+    updateBar(); paintSchedule(); paintPrices();
+  }
 
   /* ---------- проверка перед записью ---------- */
   function validate() {
@@ -241,7 +446,24 @@
         if (ok) { try { new URL(l.адрес); } catch (e) { ok = false; } }
         if (!ok) errors.push((t.название || t.ключ) + ', кнопка ' + (j + 1) + ' («' + l.имя + '»): адрес должен начинаться с https://');
       });
+      var o = t.ценаOzon;   // при «Цена» — целые рубли больше 0
+      if (o && o.показ === 'цена' && !ozonPriceOk(o))
+        errors.push((t.название || t.ключ) + ', вкладка «Цены», Ozon: впишите цену' + (o.цена == null || o.цена === '' ? '' : ' целыми рублями, например 1322'));
+      var pl = t.площадки; if (!pl) return;
+      PLACES.forEach(function (p) {   // в файл — только идентификатор, метки из вставленной ссылки отброшены
+        var r = parsePlace(p[0], pl[p[0]]);
+        if (r.error) errors.push((t.название || t.ключ) + ', вкладка «Цены», ' + KIND_NAME[p[0]] + ': ' + r.error);
+        else pl[p[0]] = r.id;
+      });
     });
+    return errors;
+  }
+  function validateSettings() {
+    var s = state.set, errors = [];
+    if (!settingsDirty()) return errors;
+    s.wb.регионИмя = String(s.wb.регионИмя == null ? '' : s.wb.регионИмя).trim();
+    if (!s.расписание.часыМСК.length) errors.push('Когда обновлять цены: выберите хотя бы один час');
+    if (!Number.isInteger(s.wb.регион)) errors.push('Показ цен: регион WB — целое число, например -1257786 (Москва)');
     return errors;
   }
 
@@ -259,35 +481,102 @@
       '<span class="spacer"></span><button class="btn btn--ghost btn--small btn--danger" type="button" data-act="link-del">Убрать</button></div>' +
       '</div>';
   }
-  function card(t, i, n) {
+  function head(t, i, n, order) {   // миниатюра, номер и название; стрелки порядка — только на вкладке «Товары и кнопки»
     var pal = t.палитра || {};
-    return '<section class="panel card" data-i="' + i + '">' +
-      '<div class="card__head">' +
+    return '<div class="card__head">' +
         '<div class="card__pic" style="--c:' + esc(pal.фон || '#333') + '">' + (t.миниатюра ? '<img src="' + esc(t.миниатюра) + '" alt="">' : '') + '</div>' +
         '<div class="card__title"><div class="card__key">' + (i + 1) + ' из ' + n + ' · ' + esc(t.ключ) + '</div><b>' + esc(t.название) + '</b></div>' +
-        '<div class="card__order"><button class="ib" type="button" data-act="item-up" title="Выше в ленте"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
-        '<button class="ib" type="button" data-act="item-down" title="Ниже в ленте"' + (i === n - 1 ? ' disabled' : '') + '>↓</button></div>' +
-      '</div>' +
+        (order ? '<div class="card__order"><button class="ib" type="button" data-act="item-up" title="Выше в ленте"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+        '<button class="ib" type="button" data-act="item-down" title="Ниже в ленте"' + (i === n - 1 ? ' disabled' : '') + '>↓</button></div>' : '') +
+      '</div>';
+  }
+  function card(t, i, n) {
+    return '<section class="panel card" data-i="' + i + '">' + head(t, i, n, true) +
       '<label class="field"><span>Название на сайте</span><input data-f="название" value="' + esc(t.название) + '"></label>' +
       '<div class="links"><h3>Кнопки под названием</h3>' + t.ссылки.map(function (l, j) { return linkRow(l, j, t.ссылки.length); }).join('') +
       (t.ссылки.length ? '' : '<p class="muted">Кнопок нет — на сайте под названием будет пусто.</p>') + '</div>' +
       '<button class="btn btn--ghost btn--small add" type="button" data-act="link-add">+ Добавить кнопку</button>' +
       '</section>';
   }
+  /* вкладка «Цены»: карточка товара — ссылка WB, блок Ozon, ссылка dasdorrio.ru (в порядке кнопок на сайте) */
+  function priceCard(t, i, n) {
+    return '<section class="panel card" data-i="' + i + '">' + head(t, i, n, false) + priceField(t, PLACES[0]) + ozonField(t) + priceField(t, PLACES[1]) + '</section>';
+  }
+  /* блок Ozon: что показать у кнопки и, при «Цена», сама цена; под блоком — предпросмотр кнопки */
+  function ozonField(t) {
+    var mode = ozonMode(t), o = t.ценаOzon || {};
+    return '<div class="oz" data-ozon><div class="grid2">' +
+      '<label class="field"><span>Что показывать у кнопки Ozon</span><select data-o aria-label="' + esc('Что показывать у кнопки Ozon — ' + t.название) + '">' +
+        OZON.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === mode ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></label>' +
+      '<label class="field"' + (mode === 'цена' ? '' : ' hidden') + '><span>Цена в рублях — с Ozon Картой, как на витрине</span>' +
+        '<input data-o-price value="' + esc(mode === 'цена' && o.цена != null ? o.цена : '') + '" placeholder="например, 1322" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="' + esc('Цена Ozon в рублях, с Ozon Картой — ' + t.название) + '"></label>' +
+      '</div><div class="ozprev" data-oprev>' + ozonPreview(t) + '</div></div>';
+  }
+  function ozonPreview(t) {
+    var mode = ozonMode(t), o = t.ценаOzon || {}, line = '', cap = 'так кнопка выглядит на сайте', bad = false;
+    if (mode === 'скрыть') cap = 'без второй строки';
+    else if (mode !== 'цена') line = '<span class="oprice oprice--muted">' + esc(mode) + '</span>';
+    else if (ozonPriceOk(o)) line = '<span class="oprice">' + money(o.цена) + '</span>';
+    else { cap = 'впишите цену целыми рублями, например 1322'; bad = true; }
+    return '<span class="opill"><span class="coin"></span><span>Ozon' + line + '</span></span><span class="ozcap' + (bad ? ' bad' : '') + '">' + cap + '</span>';
+  }
+  /* в поле — чистая ссылка, собранная из идентификатора; нераспознанный текст остаётся как есть */
+  function priceField(t, p) {
+    var v = (t.площадки || {})[p[0]], id = parsePlace(p[0], v).id;
+    return '<div class="field" data-place="' + p[0] + '"><span>' + esc(p[1]) + '</span><div class="pf">' +
+      '<input data-p value="' + esc(id ? placeUrl(p[0], id) : v) + '" placeholder="' + esc(p[2]) + '" aria-label="' + esc(p[1] + ' — ' + t.название) + '" inputmode="url" spellcheck="false" autocomplete="off">' +
+      '<a class="open" target="_blank" rel="noopener" title="Открыть чистую ссылку без меток в новой вкладке" aria-label="Открыть ссылку">↗</a>' +
+      (p[0] === 'wb' ? '' :   // кнопки WB на сайте ведут на поиск, артикула в них нет
+      '<button class="btn btn--ghost btn--small" type="button" data-act="take" title="Вынуть из адреса кнопки на сайте, не открывая ссылку">Взять из кнопки сайта</button>') +
+      '</div><div class="pnote" data-parse></div><div class="pnote" data-note></div></div>';
+  }
+  /* под полем — что распознано, затем последняя цена и дата (по Москве) или ошибка из prices.js с сайта; ↗ — на чистую ссылку */
+  function paintPlace(f, t, p) {
+    var r = parsePlace(p, (t.площадки || {})[p]), n = priceNote(t, p, r.id), a = f.querySelector('.open');
+    var what = p === 'wb' ? 'артикул WB ' + r.id : 'адрес без меток';
+    var was = (state.basePlaces[t.ключ] || {})[p], stale = r.id && was != null && String(was) !== r.id && parsePlace(p, was).id === r.id;   // в файле тот же товар, но ссылкой или с метками
+    note(f.querySelector('[data-parse]'), r.error || (!r.id ? 'Поле пустое — цены у этой кнопки не будет.' :
+         stale ? 'В products.js записано ссылкой или с метками — нажмите «Сохранить на сайт», запишется ' + what : what + (p === 'shop' ? ' ✓' : '')),
+         r.error || stale ? 'bad' : r.id ? 'ok' : '');
+    note(f.querySelector('[data-note]'), n[0], n[1]);
+    if (r.id) a.href = placeUrl(p, r.id); else a.removeAttribute('href');
+  }
+  function priceNote(t, p, id) {
+    if (!id) return [''];   // поле пустое или ссылка не распознана — об этом строка выше
+    if (state.set && state.set[p].показывать === false) return ['Площадка выключена в «Показ цен» ниже — цена не показывается.'];
+    if (id !== parsePlace(p, (state.basePlaces[t.ключ] || {})[p]).id) return ['Новая ссылка: цена появится после сохранения и следующего обновления цен.'];
+    if (state.prices === undefined) return ['Загружаю цены…'];
+    if (!state.prices) return [state.pricesMsg];
+    var r = ((state.prices.товары || {})[t.ключ] || {})[p], parts = [];
+    if (!r) return ['Цены пока нет: скрипт ещё не проверял этот товар.'];
+    if (r.цена != null) parts.push('Последняя цена ' + money(r.цена) +
+      ', получена ' + msk(r.получено) + (Date.now() - new Date(r.получено) > 48 * 3600e3 ? ' — старше 48 часов, на сайте не видна' : ''));
+    if (r.ошибка) parts.push('ошибка: ' + r.ошибка + ', проверено ' + msk(r.проверено));
+    return [parts.join(' · '), r.ошибка ? 'bad' : ''];
+  }
+  function paintPrices() {
+    el.lastRun.textContent = state.prices ? 'Последнее обновление: ' + msk(state.prices.обновлено) : state.prices === null ? state.pricesMsg : 'Загружаю цены…';
+    Array.prototype.forEach.call(el.plist.querySelectorAll('[data-place]'), function (f) {
+      paintPlace(f, state.items[+f.closest('.card').getAttribute('data-i')], f.getAttribute('data-place'));
+    });
+  }
   function render() {
     var n = state.items.length;
     el.list.innerHTML = state.items.map(function (t, i) { return card(t, i, n); }).join('');
+    el.plist.innerHTML = state.items.map(function (t, i) { return priceCard(t, i, n); }).join('');
+    paintPrices();
   }
   function updateBar() {
-    el.save.disabled = !state.online || !state.dirty;
-    if (state.online && state.dirty) status('Есть несохранённые изменения.');
+    var dirty = state.dirty || settingsDirty();
+    el.save.disabled = !state.online || !dirty || state.saving;
+    if (state.online && dirty) status('Есть несохранённые изменения.');
   }
 
   /* ---------- события формы ---------- */
   function onEdit(e) {
-    var f = e.target.getAttribute('data-f'); if (!f) return;
     var cardEl = e.target.closest('.card'); if (!cardEl) return;
     var t = state.items[+cardEl.getAttribute('data-i')];
+    var f = e.target.getAttribute('data-f'); if (!f) return;
     var row = e.target.closest('.link');
     if (row) {
       var l = t.ссылки[+row.getAttribute('data-j')];
@@ -301,7 +590,8 @@
       }
     } else {
       t[f] = e.target.value;
-      if (f === 'название') cardEl.querySelector('.card__title b').textContent = e.target.value;
+      if (f === 'название') Array.prototype.forEach.call(document.querySelectorAll('.card[data-i="' + cardEl.getAttribute('data-i') + '"] .card__title b'),
+        function (b) { b.textContent = e.target.value; });   // и в карточке на вкладке «Цены»
     }
     touch();
   }
@@ -322,7 +612,49 @@
     if (act === 'link-add') { var rows = el.list.querySelectorAll('.card[data-i="' + i + '"] .link'); var last = rows[rows.length - 1]; if (last) last.querySelector('[data-f="адрес"]').focus(); }
   });
   el.preview.closest('details').addEventListener('toggle', function () { if (this.open) el.preview.textContent = currentText(); });
-  window.addEventListener('beforeunload', function (e) { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+  /* вкладка «Цены»: вставленная ссылка разбирается сразу; в товар — номер или адрес без меток, нераспознанный текст
+     остаётся как есть (его не пропустит проверка перед записью); после ухода из поля в нём чистая ссылка */
+  function onPlace(e) {
+    var f = e.target.closest('[data-place]'); if (!f || !e.target.hasAttribute('data-p')) return;
+    var t = state.items[+f.closest('.card').getAttribute('data-i')], p = f.getAttribute('data-place'), r = parsePlace(p, e.target.value);
+    (t.площадки = t.площадки || {})[p] = r.error ? e.target.value : r.id;
+    if (e.type === 'change' && r.id) e.target.value = placeUrl(p, r.id);
+    touch(); paintPlace(f, t, p);
+  }
+  el.plist.addEventListener('input', onPlace);
+  el.plist.addEventListener('change', onPlace);
+  /* блок Ozon: режим и цена сразу в товар. Из цены, скопированной с витрины, отбрасываются «₽» в конце и пробелы между разрядами;
+     две цены подряд («1 322 ₽ 1 590 ₽») и прочий нераспознанный текст остаются как есть (их не пропустит проверка перед записью).
+     Скрытое поле хранит цену, пока выбран другой режим, но только до перерисовки списка (стрелки, кнопки, сохранение) */
+  function onOzon(e) {
+    var f = e.target.closest('[data-ozon]'); if (!f) return;
+    var t = state.items[+f.closest('.card').getAttribute('data-i')], mode = f.querySelector('[data-o]').value, inp = f.querySelector('[data-o-price]');
+    var s = inp.value.trim().replace(/\s*₽$/, ''), n = Number(s.replace(/[ \u00A0\u2009\u202F]/g, ''));
+    if (!/^[1-9](\d*|\d{0,2}([ \u00A0\u2009\u202F]\d{3})+)$/.test(s) || !ozonPriceOk({ цена: n })) n = null;
+    t.ценаOzon = mode === 'цена' ? { показ: mode, цена: n || inp.value.trim() } : { показ: mode };
+    if (e.type === 'change' && n) inp.value = n;
+    inp.closest('.field').hidden = mode !== 'цена';
+    f.querySelector('[data-oprev]').innerHTML = ozonPreview(t);
+    touch();
+  }
+  el.plist.addEventListener('input', onOzon);
+  el.plist.addEventListener('change', onOzon);
+  /* «Взять из кнопки сайта»: адрес кнопки этой площадки разбирается тут же, ссылку с метками не открываем */
+  el.plist.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-act="take"]'); if (!btn) return;
+    var f = btn.closest('[data-place]'), p = f.getAttribute('data-place'), t = state.items[+f.closest('.card').getAttribute('data-i')];
+    var l = t.ссылки.filter(function (x) { return x.вид === p; })[0], r = l ? parsePlace(p, l.адрес) : { error: 'у товара нет кнопки ' + KIND_NAME[p] };
+    if (!r.id) { note(f.querySelector('[data-parse]'), 'Кнопка сайта: ' + (r.error || 'адрес пустой'), 'bad'); return; }
+    (t.площадки = t.площадки || {})[p] = r.id; f.querySelector('[data-p]').value = placeUrl(p, r.id);
+    touch(); paintPlace(f, t, p);
+  });
+  el.hours.addEventListener('click', function (e) {
+    var b = e.target.closest('.hour'); if (!b || !state.set) return;
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); readSettings();
+  });
+  el.setPanel.addEventListener('input', readSettings);
+  el.setPanel.addEventListener('change', readSettings);
+  window.addEventListener('beforeunload', function (e) { if (state.dirty || settingsDirty()) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---------- загрузка ---------- */
   function apply(src, sha, online) {
@@ -330,13 +662,41 @@
     state.source = src; state.sha = sha; state.online = online;
     state.eol = src.indexOf('\r\n') >= 0 ? '\r\n' : '\n';
     state.header = splitHeader(src);
-    state.dirty = false;
+    state.basePlaces = placesOf(state.items);   // как в файле — до сведения к идентификаторам
+    state.baseOzon = ozonOf(state.items);
+    state.dirty = cleanIds(state.items);
     render(); updateBar();
+  }
+  /* настройки цен: с токеном — из репозитория, без токена или при ошибке — копия с сайта; файла нет — значения по умолчанию */
+  function loadSettings() {
+    var fromRepo = state.token
+      ? fetch(API + '/contents/' + SETTINGS + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' }).then(function (r) {
+          if (r.status === 404) return '{}';
+          if (!r.ok) throw httpError(r.status);
+          return r.json().then(function (j) { return b64decode(j.content); });
+        })
+      : Promise.reject();
+    return fromRepo.catch(function () {
+      return fetch(SETTINGS + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : '{}'; });
+    }).then(function (src) { note(el.setNote, ''); return JSON.parse(src); })
+      .catch(function () { note(el.setNote, 'Настройки цен не прочитаны — показаны значения по умолчанию.', 'bad'); return {}; })
+      .then(function (raw) { state.setBase = normSettings(raw); state.set = normSettings(raw); renderSettings(); updateBar(); paintPrices(); });
+  }
+  /* последние цены — prices.js с сайта (его пишет скрипт цен), только для показа */
+  function loadPrices() {
+    fetch('prices.js?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text().then(function (src) { return new Function(src + '\n;return ЦЕНЫ;')(); });
+    }).then(function (p) { state.prices = p || null; state.pricesMsg = 'Цен ещё нет.'; },
+            function () { state.prices = null; state.pricesMsg = 'Цены не загрузились — обновите страницу.'; })
+      .then(paintPrices);
   }
   function load() {
     status('Загружаю…');
+    loadSettings();
     var fromRepo = state.token
-      ? fetch(API + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' }).then(function (r) {
+      ? fetch(API + '/contents/' + FILE + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' }).then(function (r) {
           if (!r.ok) throw httpError(r.status);
           return r.json();
         }).then(function (j) {
@@ -362,7 +722,9 @@
   /* Перед записью берём свежую версию файла из репозитория (её могли обновить картинки и рамки героев),
      накладываем на неё названия, кнопки и порядок из формы и записываем. Так правки не теряются,
      даже если файл менялся после загрузки редактора. */
-  function mergeOnto(serverItems, myItems) {
+  function placesOf(items) { var m = {}; items.forEach(function (t) { m[t.ключ] = cleanPlaces(t.площадки); }); return m; }
+  function ozonOf(items) { var m = {}; items.forEach(function (t) { m[t.ключ] = JSON.stringify(t.ценаOzon); }); return m; }
+  function mergeOnto(serverItems, myItems, basePlaces, baseOzon) {
     var used = {}, merged = [];
     myItems.forEach(function (m) {
       var srv = null;
@@ -370,51 +732,85 @@
       if (!srv) return;
       used[m.ключ] = true;
       srv.название = m.название; srv.ссылки = m.ссылки;
+      /* «площадки» — по полям, как настройки цен: кладём только поля, изменённые в форме с загрузки,
+         иначе SKU, который агент поправил после открытия редактора, вернулся бы к старому */
+      var now = cleanPlaces(m.площадки), was = (basePlaces || {})[m.ключ] || {};
+      PLACES.forEach(function (p) {
+        var k = p[0];
+        if (String(now[k] || '') !== String(was[k] || '')) (srv.площадки = srv.площадки || {})[k] = now[k] || '';
+      });
+      /* ценаOzon — так же: из формы, только если его меняли с загрузки, иначе остаётся то, что в свежем файле */
+      if (m.ценаOzon != null && JSON.stringify(m.ценаOzon) !== (baseOzon || {})[m.ключ]) srv.ценаOzon = m.ценаOzon;
       merged.push(srv);
     });
     serverItems.forEach(function (x) { if (!used[x.ключ]) merged.push(x); });   // товары, добавленные не здесь, — в конец
     return merged;
   }
   window.__dasdorrioMerge = mergeOnto;
-  function save(attempt) {
+  /* GET свежей версии файла с sha → build(текст или null, если файла нет) собирает { text } → PUT;
+     конфликт версии (409/422) — всё заново с новым sha, до трёх попыток */
+  function putFile(file, message, build, attempt) {
     attempt = attempt || 1;
-    var errors = validate();
-    render();
+    var url = API + '/contents/' + file;
+    return fetch(url + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' })
+    .then(function (r) { if (r.status === 404) return null; if (!r.ok) throw httpError(r.status); return r.json(); })
+    .then(function (j) {
+      var out = build(j ? b64decode(j.content) : null);
+      return fetch(url, { method: 'PUT', headers: headers(true),
+        body: JSON.stringify({ message: message, content: b64encode(out.text), sha: j ? j.sha : undefined, branch: BRANCH }) })
+      .then(function (r) {
+        if (r.status !== 409 && r.status !== 422) { if (!r.ok) throw httpError(r.status); return out; }
+        if (attempt >= 3) throw new Error('файл меняется прямо сейчас, попробуйте через минуту.');
+        status('Файл только что обновился, сохраняю ещё раз…');
+        return putFile(file, message, build, attempt + 1);
+      });
+    });
+  }
+  function save() {
+    var errors = validate().concat(validateSettings());
+    render(); if (state.set) renderSettings();
     if (errors.length) { status('Не сохранено. ' + errors.join(' · '), 'bad'); return; }
     if (!state.token) { status('Нет подключения к репозиторию: введите токен и нажмите «Подключить».', 'bad'); return; }
-    var mine = state.items;
-    el.save.disabled = true; status(attempt > 1 ? 'Файл только что обновился, сохраняю ещё раз…' : 'Сохраняю…');
-    var fresh;
-    fetch(API + '?ref=' + BRANCH, { headers: headers(false), cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw httpError(r.status); return r.json(); })
-    .then(function (j) {
-      var serverSrc = b64decode(j.content);
-      var items = mergeOnto(parseProducts(serverSrc), mine);
-      var header = splitHeader(serverSrc), CRLF = String.fromCharCode(13, 10), eol = serverSrc.indexOf(CRLF) >= 0 ? CRLF : String.fromCharCode(10);
-      var text = serialize(items, header, eol);
-      parseProducts(text);                                   // файл обязан читаться, иначе ничего не пишем
-      fresh = { items: items, header: header, eol: eol, text: text, sha: j.sha };
-      return fetch(API, { method: 'PUT', headers: headers(true),
-        body: JSON.stringify({ message: 'Названия и ссылки обновлены через редактор', content: b64encode(text), sha: j.sha, branch: BRANCH }) });
-    })
-    .then(function (r) {
-      if (r.status === 409 || r.status === 422) throw new Error('conflict');
-      if (!r.ok) throw httpError(r.status);
-      return r.json();
-    })
-    .then(function (res) {
-      state.items = fresh.items; state.header = fresh.header; state.eol = fresh.eol; state.source = fresh.text;
-      state.sha = res.content && res.content.sha || fresh.sha; state.online = true; state.dirty = false;
-      render(); updateBar(); el.forget.hidden = false;
+    /* снимки проверенной формы: в файлы уходят они, а форма и кнопка до ответа GitHub заблокированы */
+    var mine = JSON.parse(JSON.stringify(state.items)), mySet = JSON.parse(JSON.stringify(state.set)), base = state.setBase, basePlaces = state.basePlaces, baseOzon = state.baseOzon;
+    var products = currentText() !== state.source, settings = settingsDirty(), productsDone = false;
+    if (!products && !settings) { touch(); status('Изменений нет — сохранять нечего.'); return; }
+    lock(true); status('Сохраняю…');
+    var chain = Promise.resolve();
+    if (products) chain = chain.then(function () {
+      return putFile(FILE, 'Названия и ссылки обновлены через редактор', function (src) {
+        if (src == null) throw httpError(404);
+        var items = mergeOnto(parseProducts(src), mine, basePlaces, baseOzon), header = splitHeader(src), eol = eolOf(src);
+        var text = serialize(items, header, eol);
+        parseProducts(text);                                   // файл обязан читаться, иначе ничего не пишем
+        return { items: items, header: header, eol: eol, text: text };
+      }).then(function (f) {
+        state.items = f.items; state.header = f.header; state.eol = f.eol; state.source = f.text;
+        state.basePlaces = placesOf(f.items); state.baseOzon = ozonOf(f.items); state.dirty = cleanIds(f.items); productsDone = true;
+        render();
+      });
+    });
+    if (settings) chain = chain.then(function () {
+      return putFile(SETTINGS, 'Настройки цен обновлены через редактор', function (src) {
+        var s = mergeSettings(src == null ? {} : JSON.parse(src), base, mySet);
+        return { s: s, text: settingsText(s, src == null ? '\n' : eolOf(src)) };
+      }).then(function (f) {
+        state.setBase = normSettings(f.s); state.set = normSettings(f.s);
+        renderSettings(); paintPrices();
+      });
+    });
+    chain.then(function () {
+      state.online = true; lock(false); el.forget.hidden = false;
       status('Сохранено. Сайт обновится примерно через минуту — проверьте через «Открыть сайт».', 'ok');
-    })
-    .catch(function (e) {
-      if (e.message === 'conflict' && attempt < 3) { save(attempt + 1); return; }
-      status('Не сохранено: ' + (e.message === 'conflict' ? 'файл меняется прямо сейчас, попробуйте через минуту.' : e.message) + ' Ваши правки остались в форме.', 'bad');
+    }).catch(function (e) {
+      lock(false);
+      status(productsDone ? 'Названия и ссылки сохранены, настройки цен — нет: ' + e.message + ' Нажмите «Сохранить на сайт» ещё раз.'
+                          : 'Не сохранено: ' + e.message + ' Ваши правки остались в форме.', 'bad');
       el.save.disabled = false;
     });
   }
-  el.save.addEventListener('click', function () { save(1); });
+  function lock(on) { state.saving = on; el.paneLinks.inert = el.panePrices.inert = on; updateBar(); }
+  el.save.addEventListener('click', save);
   /* «Открыть сайт» — всегда свежая версия, минуя кэш браузера */
   $('site').addEventListener('click', function () { this.href = 'https://dasdorrio.shop/?v=' + Date.now(); });
 
@@ -433,7 +829,48 @@
     load();
   });
 
+  /* ---------- «Обновить цены сейчас»: ручной запуск расписания «Цены» (workflow_dispatch), токену нужно право Actions ---------- */
+  el.run.addEventListener('click', function () {
+    if (!state.token) { note(el.setNote, 'Нужен токен: введите его выше и нажмите «Подключить».', 'bad'); return; }
+    if (state.dirty || settingsDirty()) { note(el.setNote, 'Сначала нажмите «Сохранить на сайт»: скрипт цен берёт товары и настройки с GitHub.', 'bad'); return; }
+    el.run.disabled = true; note(el.setNote, 'Запускаю…');
+    fetch(API + '/actions/workflows/prices.yml/dispatches', { method: 'POST', headers: headers(true), body: JSON.stringify({ ref: BRANCH }) })
+    .then(function (r) {
+      if (r.status === 204 || r.status === 200) {
+        note(el.setNote, 'Запущено, цены обновятся через 1–2 минуты, сайт — ещё через минуту.', 'ok');
+        setTimeout(function () { el.run.disabled = false; }, 120000);   // пока идёт запуск, второй не нужен
+        return;
+      }
+      var m = { 403: 'У токена нет права Actions → Read and write: добавьте его в настройках токена.', 404: 'Расписание цен ещё не выложено на GitHub.' };
+      note(el.setNote, m[r.status] || httpError(r.status).message, 'bad');
+      el.run.disabled = false;
+    })
+    .catch(function () { note(el.setNote, 'Нет связи с GitHub — попробуйте ещё раз.', 'bad'); el.run.disabled = false; });
+  });
+
+  /* ---------- вкладки: выбранная запоминается в этом браузере ---------- */
+  function showTab(name) {
+    Array.prototype.forEach.call(el.tabs, function (b) {
+      var on = b.getAttribute('data-tab') === name;
+      b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1;
+      $(b.getAttribute('aria-controls')).hidden = !on;
+    });
+    try { localStorage.setItem(TAB_STORE, name); } catch (e) { /* приватный режим */ }
+  }
+  Array.prototype.forEach.call(el.tabs, function (b, i) {
+    b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); });
+    b.addEventListener('keydown', function (e) {   // стрелки — на соседнюю вкладку
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      var next = el.tabs[(i + (e.key === 'ArrowRight' ? 1 : el.tabs.length - 1)) % el.tabs.length];
+      showTab(next.getAttribute('data-tab')); next.focus();
+    });
+  });
+
+  for (var h = 0, hs = ''; h < 24; h++) hs += '<button class="hour" type="button" data-h="' + h + '" aria-pressed="false" aria-label="' + h + ':00">' + (h < 10 ? '0' : '') + h + '</button>';
+  el.hours.innerHTML = hs;
+  try { showTab(localStorage.getItem(TAB_STORE) === 'prices' ? 'prices' : 'links'); } catch (e) { /* приватный режим — первая вкладка */ }
   try { var saved = localStorage.getItem(STORE); if (saved) { el.token.value = saved; state.token = saved; } } catch (e) { /* ничего */ }
+  loadPrices();
   load();
 })();
 </script>
