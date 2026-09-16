@@ -434,17 +434,20 @@
   var PRICES = typeof ЦЕНЫ !== 'undefined' && ЦЕНЫ && ЦЕНЫ.товары || {};
   var PRICED = { wb: 1, shop: 1 };
   function fresh(iso) { var ms = Date.parse(iso); return ms > 0 && Date.now() - ms < 48 * 3600000; }
+  function soldOut(p) { return !!p && !(p.цена > 0) && p.ошибка === 'нет в наличии' && fresh(p.проверено); }
   function priceOf(t, kind) {
     if (kind === 'ozon') {
       var o = t.ценаOzon || {};
-      if (o.показ === 'цена' && o.цена > 0) return { цена: o.цена };   // без даты: в строку цен дата не идёт
-      return o.показ === 'скрыть' ? null : o.показ === 'нет в наличии' ? 'нет' : 'площадка';
+      if (o.показ === 'скрыть') return null;
+      /* остатки магазина dasdorrio.ru берутся с Ozon: магазин свежо ответил «нет в наличии» — у Ozon тоже;
+         появился остаток — снова вписанная владельцем цена */
+      if (o.показ === 'нет в наличии' || soldOut(PRICES[t.ключ] && PRICES[t.ключ].shop)) return 'нет';
+      return o.показ === 'цена' && o.цена > 0 ? { цена: o.цена } : 'площадка';   // без даты: в строку цен дата не идёт
     }
     var p = PRICED[kind] && PRICES[t.ключ] && PRICES[t.ключ][kind];
     if (!p) return null;
     if (p.цена > 0 && fresh(p.получено)) return p;
-    if (!(p.цена > 0) && p.ошибка === 'нет в наличии' && fresh(p.проверено)) return 'нет';
-    return 'площадка';
+    return soldOut(p) ? 'нет' : 'площадка';
   }
   function rub(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0') + '\u00A0₽'; }
   function mskDate(ms) {                                    // ДД.ММ по Москве: UTC+3 круглый год

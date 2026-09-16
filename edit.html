@@ -101,6 +101,7 @@
   .oprice--muted{color:var(--muted)}
   .ozcap{font-size:13px; color:var(--muted)}
   .ozcap.bad{color:var(--bad)}
+  .ozcap--line{flex-basis:100%}   /* «нет остатков в магазине» — отдельной строкой под кнопкой */
   .tabs{display:flex; gap:4px; padding:4px; margin:0 0 14px; background:var(--card); border:1px solid var(--line); border-radius:14px}
   .tab{flex:1; height:44px; border:0; border-radius:10px; background:transparent; color:var(--muted); font:inherit; cursor:pointer}
   .tab[aria-selected="true"]{background:var(--line); color:var(--fg); font-weight:700}
@@ -512,13 +513,21 @@
         '<input data-o-price value="' + esc(mode === 'цена' && o.цена != null ? o.цена : '') + '" placeholder="например, 1322" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="' + esc('Цена Ozon в рублях, с Ozon Картой — ' + t.название) + '"></label>' +
       '</div><div class="ozprev" data-oprev>' + ozonPreview(t) + '</div></div>';
   }
+  /* остатки магазина dasdorrio.ru берутся с Ozon: в prices.js у магазина свежее «нет в наличии» — на сайте оно и у Ozon
+     при «Цена» и «Цена на площадке»; вписанная цена не меняется и вернётся сама, когда остаток появится */
+  function shopOut(t) {
+    var r = state.prices && ((state.prices.товары || {})[t.ключ] || {}).shop;
+    return !!r && !(r.цена > 0) && r.ошибка === 'нет в наличии' && Date.now() - new Date(r.проверено) < 48 * 3600e3;
+  }
   function ozonPreview(t) {
     var mode = ozonMode(t), o = t.ценаOzon || {}, line = '', cap = 'так кнопка выглядит на сайте', bad = false;
+    var out = (mode === 'цена' || mode === 'цена на площадке') && shopOut(t);
     if (mode === 'скрыть') cap = 'без второй строки';
-    else if (mode !== 'цена') line = '<span class="oprice oprice--muted">' + esc(mode) + '</span>';
-    else if (ozonPriceOk(o)) line = '<span class="oprice">' + money(o.цена) + '</span>';
-    else { cap = 'впишите цену целыми рублями, например 1322'; bad = true; }
-    return '<span class="opill"><span class="coin"></span><span>Ozon' + line + '</span></span><span class="ozcap' + (bad ? ' bad' : '') + '">' + cap + '</span>';
+    else if (mode === 'цена' && !ozonPriceOk(o)) { cap = 'впишите цену целыми рублями, например 1322'; bad = true; }
+    else if (mode !== 'цена' || out) line = '<span class="oprice oprice--muted">' + esc(out ? 'нет в наличии' : mode) + '</span>';
+    else line = '<span class="oprice">' + money(o.цена) + '</span>';
+    return '<span class="opill"><span class="coin"></span><span>Ozon' + line + '</span></span><span class="ozcap' + (bad ? ' bad' : '') + '">' + cap + '</span>' +
+      (out ? '<span class="ozcap ozcap--line">Сейчас на сайте: нет в наличии — в магазине dasdorrio.ru нет остатков. Цена вернётся сама, когда остаток появится</span>' : '');
   }
   /* в поле — чистая ссылка, собранная из идентификатора; нераспознанный текст остаётся как есть */
   function priceField(t, p) {
@@ -558,6 +567,9 @@
     el.lastRun.textContent = state.prices ? 'Последнее обновление: ' + msk(state.prices.обновлено) : state.prices === null ? state.pricesMsg : 'Загружаю цены…';
     Array.prototype.forEach.call(el.plist.querySelectorAll('[data-place]'), function (f) {
       paintPlace(f, state.items[+f.closest('.card').getAttribute('data-i')], f.getAttribute('data-place'));
+    });
+    Array.prototype.forEach.call(el.plist.querySelectorAll('[data-oprev]'), function (f) {   // предпросмотр Ozon зависит от остатков магазина
+      f.innerHTML = ozonPreview(state.items[+f.closest('.card').getAttribute('data-i')]);
     });
   }
   function render() {

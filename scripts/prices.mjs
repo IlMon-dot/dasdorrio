@@ -197,24 +197,39 @@ async function ozon() {
 }
 
 /* ---------- dasdorrio.ru: цена со страницы товара ---------- */
-// { цена, нет } — нет: в JSON-LD availability OutOfStock / SoldOut / Discontinued; без availability товар в наличии
+// { цена } — у предложения в наличии есть цена, запасной — meta product:price:amount; без availability товар в наличии.
+// { нет } — страница первого товара открылась, но availability OutOfStock / SoldOut / Discontinued либо цены нет вообще.
+// null — не страница товара (нет Product в JSON-LD) или цена на месте есть, но числом не читается: это сбой, прежняя цена остаётся.
+// Смотрим только ПЕРВЫЙ Product страницы: похожие товары в той же разметке не должны решать за основной.
 function ценаСоСтраницы(html) {
-  const число = (x) => Number(String(x ?? '').replace(/[\s ]/g, '').replace(',', '.'));
+  const число = (x) => Number(String(x ?? '').replace(/[\s\u00A0]/g, '').replace(',', '.'));
+  let товар = null;
   for (const [, json] of html.matchAll(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
     let данные;
     try { данные = JSON.parse(json); } catch { continue; }
     const узлы = [данные].flat().flatMap((у) => (у?.['@graph'] ? [у['@graph']].flat() : [у]));
-    for (const у of узлы) {
-      if (![у?.['@type']].flat().includes('Product')) continue;
-      for (const o of [у.offers].flat()) {
-        const цена = число(o?.price ?? o?.lowPrice);
-        if (цена > 0) return { цена: Math.round(цена), нет: /(OutOfStock|SoldOut|Discontinued)$/i.test(String(o.availability ?? '')) };
-      }
-    }
+    товар = узлы.find((у) => [у?.['@type']].flat().includes('Product'));
+    if (товар) break;
   }
+  if (!товар) return null;
+  let нет = false, порча = false;                 // порча — цена на месте есть, но числом не читается: разметка изменилась
+  for (const o of [товар.offers].flat()) {
+    if (!o) continue;
+    if (/(OutOfStock|SoldOut|Discontinued)$/i.test(String(o.availability ?? ''))) { нет = true; continue; }
+    const поле = o.price ?? o.lowPrice;
+    if (поле === undefined || поле === null) continue;
+    const цена = число(поле);
+    if (цена > 0) return { цена: Math.round(цена) };
+    порча = true;
+  }
+  if (нет) return { нет: true };
   const мета = html.match(/<meta[^>]*product:price:amount[^>]*>/i)?.[0].match(/content=["']([^"']+)/i);
-  const цена = число(мета?.[1]);
-  return цена > 0 ? { цена: Math.round(цена), нет: false } : null;
+  if (мета) {
+    const цена = число(мета[1]);
+    if (цена > 0) return { цена: Math.round(цена) };
+    порча = true;
+  }
+  return порча ? null : { нет: true };
 }
 
 async function shop() {
@@ -222,7 +237,7 @@ async function shop() {
     if (i) await пауза(1000);
     try {
       const р = ценаСоСтраницы(await запрос(т.id, 'магазин', { headers: { Accept: 'text/html' } }, 'html'));
-      if (!р) сбой('shop', т.ключ, 'цена не найдена');
+      if (!р) сбой('shop', т.ключ, 'не страница товара');
       else if (р.нет) нетВНаличии('shop', т.ключ);
       else удача('shop', т.ключ, { цена: р.цена });
     } catch (e) { сбой('shop', т.ключ, e.message); }
