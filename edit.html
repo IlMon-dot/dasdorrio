@@ -420,7 +420,7 @@
   }
   function paintSchedule() {
     var hs = state.set.расписание.часыМСК;
-    if (hs.length) note(el.schedNote, 'Цены обновятся в ' + hoursText(hs) + ' по Москве; GitHub может запускать с задержкой до получаса.');
+    if (hs.length) note(el.schedNote, 'Цены соберутся в первом запуске после ' + hoursText(hs) + ' по Москве; GitHub исполняет расписание как получится, поэтому сбор бывает и на несколько часов позже.');
     else note(el.schedNote, 'Выберите хотя бы один час — без него настройки не сохранятся.', 'bad');
   }
   function readSettings() {
