@@ -3,11 +3,10 @@
    а цены собираются в первом запуске после часа из prices-settings.json (расписание.часыМСК); ручной и локальный запуск собирает всегда.
    Из products.js берёт у товаров только ключ и «площадки» — чистые идентификаторы; ссылки кнопок
    с метками статистики не читает и по ним не ходит. Настройки — prices-settings.json.
-   Репозиторий публичный, лог запуска видят все: ключи Ozon берутся из окружения и никуда не печатаются,
+   Репозиторий публичный, лог запуска видят все: ключи Ozon и WB берутся из окружения и никуда не печатаются,
    заголовки и тела ответов тоже — в лог и в prices.js идут только цены и короткие ошибки. */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { execFile } from 'node:child_process';
 
 const ROOT = new URL('../', import.meta.url);
 const DRY = process.argv.includes('--dry');
@@ -25,7 +24,7 @@ const строка = (п, ключ, текст) => console.log(п.padEnd(5) + к
 /* ---------- входные данные ---------- */
 let настройки = {};
 try { настройки = JSON.parse(readFileSync(new URL('prices-settings.json', ROOT), 'utf8')) || {}; }
-catch { console.log('prices-settings.json не прочитан — все площадки включены, регион WB — Москва, цены в 06:00 МСК'); }
+catch { console.log('prices-settings.json не прочитан — все площадки включены, цены в 06:00 МСК'); }
 
 let прежние = {}, обновлено;
 try { const ц = изФайла('prices.js', 'ЦЕНЫ'); прежние = ц.товары || {}; обновлено = ц.обновлено; }
@@ -66,9 +65,9 @@ try {
 /* ---------- записи для prices.js ---------- */
 const итоги = { wb: {}, ozon: {}, shop: {} };   // площадка → ключ товара → запись
 
-function удача(п, ключ, запись) {
+function удача(п, ключ, запись, пометка = '') {
   итоги[п][ключ] = { ...запись, получено: сейчас() };
-  строка(п, ключ, запись.цена + ' ₽' + (запись.сКартой ? ' ≈ с Ozon Картой' : ''));
+  строка(п, ключ, запись.цена + ' ₽' + (запись.сКартой ? ' ≈ с Ozon Картой' : '') + пометка);
 }
 // при сбое прежние цена и дата остаются, добавляются ошибка и время проверки
 function сбой(п, ключ, ошибка) {
@@ -100,56 +99,86 @@ function список(п) {
 }
 
 // ошибки — только свой короткий текст и HTTP-код, без заголовков и тела ответа
-async function запрос(url, имя, опции = {}, вид = 'json') {
+async function запрос(url, имя, { таймаут = 20000, ...опции } = {}, вид = 'json') {
   let r, тело;
   try {
-    r = await fetch(url, { ...опции, headers: { 'User-Agent': UA, ...опции.headers }, signal: AbortSignal.timeout(20000) });
+    r = await fetch(url, { ...опции, headers: { 'User-Agent': UA, ...опции.headers }, signal: AbortSignal.timeout(таймаут) });
     тело = await r.text();
   } catch { throw new Error(имя + ' не ответил'); }
   if (!r.ok) throw Object.assign(new Error(имя + ' ответил HTTP ' + r.status), { код: r.status });
+  if (r.status === 204) return null;   // «нет данных» у отчётов WB
   if (вид !== 'json') return тело;
   try { return JSON.parse(тело); } catch { throw new Error(имя + ' прислал не JSON'); }
 }
 
-// WB отвечает 403 клиенту Node по отпечатку соединения (заголовки не помогают), а curl пускает;
-// сообщение execFile содержит команду — его не печатаем
-function черезCurl(url, имя) {
-  return new Promise((ok, fail) => execFile('curl', ['-sS', '--max-time', '20', '-A', UA, '-w', '\n%{http_code}', url], { maxBuffer: 20 << 20 }, (e, out) => {
-    if (e) return fail(new Error(имя + ' не ответил через curl'));
-    const i = out.lastIndexOf('\n'), код = Number(out.slice(i + 1));
-    if (код !== 200) return fail(new Error(имя + ' ответил HTTP ' + код));
-    try { ok(JSON.parse(out.slice(0, i))); } catch { fail(new Error(имя + ' прислал не JSON')); }
-  }));
+/* ---------- Wildberries: официальный API продавца, секрет WB_API_KEY ----------
+   Карточки WB (card.wb.ru) с 22.09.2026 отдаются только браузеру, прошедшему антибот-проверку, — туда не ходим.
+   Цена = цена продавца со скидкой продавца × (1 − скидка WB %) — так WB сам считает цену покупателя в заказах
+   (finishedPrice = priceWithDisc × (1 − spp/100)); без WB Кошелька. Цена продавца и остаток — отчёт аналитики
+   по товарам (обновляется раз в 2 часа), скидка WB — самый свежий заказ товара за 30 дней из статистики.
+   Базовому токену хватает: аналитика — 2 запроса в час, статистика — 1 запрос в 3 часа. */
+const WB_ДНЕЙ = 30, ДЕНЬ = 86400000;
+const мскДата = (t) => new Date(t + 3 * 3600000).toISOString().slice(0, 10);
+const мскВремя = (s) => Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(String(s)) ? s : s + '+03:00');   // даты WB без пояса — МСК
+// частые коды WB — понятным текстом: его видно в журнале запусков и в редакторе
+function ошибкаWB(e, раздел) {
+  const текст = { 401: 'ключ WB_API_KEY не принят — проверьте его или выпустите новый', 403: 'у ключа WB нет доступа к категории «' + раздел + '»',
+    429: 'слишком частые запросы к WB, повтор при следующем сборе' }[e.код];
+  return текст ? текст + ' (HTTP ' + e.код + ')' : e.message;
 }
 
-/* ---------- Wildberries: цена со скидкой WB для региона, без Кошелька ---------- */
 async function wb() {
   const список_ = список('wb');
   if (!список_.length) return;
-  const регион = Number.isInteger(настройки.wb?.регион) ? настройки.wb.регион : -1257786;
-  let продукты;
+  const ключ = process.env.WB_API_KEY;
+  if (!ключ) { for (const т of список_) сбой('wb', т.ключ, 'нет ключа WB_API_KEY'); return; }
+
+  let отчёт;
   try {
-    const url = 'https://card.wb.ru/cards/v4/detail?appType=1&curr=rub&dest=' + регион + '&nm=' + список_.map((т) => т.id).join(';');
-    let данные;
-    try { данные = await запрос(url, 'WB'); }
-    catch (e) {
-      if (e.код !== 403) throw e;
-      console.log('wb   WB не пустил Node (HTTP 403) — повтор через curl');
-      данные = await черезCurl(url, 'WB');
+    const день = мскДата(Date.now());
+    const ответ = await запрос('https://seller-analytics-api.wildberries.ru/api/v2/stocks-report/products/products', 'WB', {
+      method: 'POST',
+      headers: { Authorization: ключ, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nmIDs: список_.map((т) => Number(т.id)), currentPeriod: { start: день, end: день }, stockType: '', skipDeletedNm: false,
+        orderBy: { field: 'stockCount', mode: 'desc' }, limit: 1000, offset: 0,
+        availabilityFilters: ['deficient', 'actual', 'balanced', 'nonActual', 'nonLiquid', 'invalidData'],
+      }),
+    });
+    отчёт = ответ === null ? [] : ответ?.data?.items;
+    if (!Array.isArray(отчёт)) throw new Error('WB прислал отчёт без списка товаров');
+  } catch (e) { for (const т of список_) сбой('wb', т.ключ, ошибкаWB(e, 'Аналитика')); return; }
+
+  // скидка WB — из самого свежего заказа товара; статистика не ответила — прошлая скидка из prices.js, если ей не больше 30 дней
+  const скидки = {};
+  let безСтатистики = '';
+  try {
+    const заказы = await запрос('https://statistics-api.wildberries.ru/api/v1/supplier/orders?dateFrom=' + мскДата(Date.now() - WB_ДНЕЙ * ДЕНЬ), 'WB',
+      { headers: { Authorization: ключ }, таймаут: 60000 });
+    if (заказы !== null && !Array.isArray(заказы)) throw new Error('WB прислал заказы не списком');
+    for (const з of заказы || []) {
+      const id = String(з?.nmId), когда = мскВремя(з?.date);
+      if (!Number.isFinite(з?.spp) || з.spp < 0 || з.spp >= 100 || !(когда > 0)) continue;
+      if (!скидки[id] || когда > скидки[id].когда) скидки[id] = { спп: з.spp, когда };
     }
-    продукты = данные?.products || данные?.data?.products;
-    if (!Array.isArray(продукты)) throw new Error('WB прислал ответ без списка товаров');
-  } catch (e) { for (const т of список_) сбой('wb', т.ключ, e.message); return; }
+  } catch (e) {
+    безСтатистики = ошибкаWB(e, 'Статистика');
+    console.log('wb   скидка WB: ' + безСтатистики + ' — беру прошлую из prices.js');
+  }
 
   for (const т of список_) {
-    const п = продукты.find((x) => String(x?.id) === т.id);
-    if (!п) { сбой('wb', т.ключ, 'нет в ответе WB'); continue; }
-    // цены в копейках; у размера без остатка цены нет
-    const копейки = Math.min(...(п.sizes || []).map((s) => (s?.price?.product > 0 ? s.price.product + (s.price.logistics || 0) : Infinity)));
-    if (копейки < Infinity) удача('wb', т.ключ, { цена: Math.round(копейки / 100) });
-    // «нет в наличии» — только если WB сам сообщил нулевой остаток; остаток есть, а цены нет — сбой, прежняя цена остаётся
-    else if (п.totalQuantity === 0 || (п.sizes?.length && п.sizes.every((s) => s?.stocks?.length === 0))) нетВНаличии('wb', т.ключ);
-    else сбой('wb', т.ключ, 'нет цены в ответе WB');
+    const товар = отчёт.find((x) => String(x?.nmID) === т.id), м = товар?.metrics;
+    if (!м) { сбой('wb', т.ключ, 'нет в отчёте WB'); continue; }
+    if (товар.isDeleted || м.stockCount === 0) { нетВНаличии('wb', т.ключ); continue; }
+    const продавец = Number(м.currentPrice?.minPrice);
+    if (!(продавец > 0)) { сбой('wb', т.ключ, 'нет цены в отчёте WB'); continue; }
+    const прошлая = прежние[т.ключ]?.wb, свежая = скидки[т.id];
+    const с = свежая || (Number.isFinite(прошлая?.скидкаWB) && Date.now() - Date.parse(прошлая.скидкаWBот) < WB_ДНЕЙ * ДЕНЬ
+      ? { спп: прошлая.скидкаWB, когда: Date.parse(прошлая.скидкаWBот) } : null);
+    if (!с) { сбой('wb', т.ключ, безСтатистики || 'нет заказов за ' + WB_ДНЕЙ + ' дней — скидка WB неизвестна'); continue; }
+    const от = new Date(с.когда).toISOString();
+    удача('wb', т.ключ, { цена: Math.round(продавец * (1 - с.спп / 100)), скидкаWB: с.спп, скидкаWBот: от },
+      ' (продавец ' + продавец + ' ₽ − скидка WB ' + с.спп + ' % по заказу ' + от.slice(8, 10) + '.' + от.slice(5, 7) + (свежая ? '' : ', прошлая') + ')');
   }
 }
 

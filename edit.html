@@ -202,10 +202,6 @@
     <section class="panel" id="setPanel">
       <h2>Показ цен</h2>
       <p class="muted" style="margin:0">Настройки записываются общей кнопкой «Сохранить на сайт» и применяются при следующем обновлении цен.</p>
-      <div class="grid2">
-        <label class="field"><span>Регион WB — код dest (Москва: -1257786)</span><input id="wbDest" spellcheck="false" autocomplete="off" placeholder="-1257786"></label>
-        <label class="field"><span>Подпись региона</span><input id="wbDestName" autocomplete="off" placeholder="Москва"></label>
-      </div>
       <label class="check"><input type="checkbox" id="showWb"> Показывать цену Wildberries</label>
       <label class="check"><input type="checkbox" id="showShop"> Показывать цену dasdorrio.ru</label>
     </section>
@@ -240,12 +236,12 @@
   /* ценаOzon: что показать второй строкой у кнопки Ozon; поля нет — «цена на площадке» */
   var OZON = [['цена', 'Цена'], ['нет в наличии', 'Нет в наличии'], ['цена на площадке', 'Цена на площадке'], ['скрыть', 'Не показывать']];
   /* prices-settings.json: поля, которые правит редактор, и их значения, если в файле их нет; ozon не правим — Ozon скрипт не запрашивает */
-  var SET_DEFAULT = { wb: { показывать: true, регион: -1257786, регионИмя: 'Москва' }, shop: { показывать: true }, расписание: { часыМСК: [6] } };
+  var SET_DEFAULT = { wb: { показывать: true }, shop: { показывать: true }, расписание: { часыМСК: [6] } };
 
   var $ = function (id) { return document.getElementById(id); };
   var el = { token: $('token'), connect: $('connect'), remember: $('remember'), forget: $('forget'), list: $('list'), plist: $('plist'),
              save: $('save'), status: $('status'), preview: $('preview'),
-             setPanel: $('setPanel'), wbDest: $('wbDest'), wbDestName: $('wbDestName'), showWb: $('showWb'), showShop: $('showShop'),
+             setPanel: $('setPanel'), showWb: $('showWb'), showShop: $('showShop'),
              run: $('run'), setNote: $('setNote'),
              tabs: document.querySelectorAll('.tab'), paneLinks: $('paneLinks'), panePrices: $('panePrices'), hours: $('hours'), schedNote: $('schedNote'), lastRun: $('lastRun') };
   var state = { token: '', header: '', eol: '\n', sha: null, items: [], source: '', dirty: false, online: false, saving: false,
@@ -413,7 +409,6 @@
   }
   function renderSettings() {
     var s = state.set;
-    el.wbDest.value = s.wb.регион; el.wbDestName.value = s.wb.регионИмя;
     el.showWb.checked = s.wb.показывать !== false; el.showShop.checked = s.shop.показывать !== false;
     Array.prototype.forEach.call(el.hours.children, function (b) { b.setAttribute('aria-pressed', s.расписание.часыМСК.indexOf(+b.getAttribute('data-h')) >= 0); });
     paintSchedule();
@@ -425,9 +420,7 @@
   }
   function readSettings() {
     if (!state.set) return;
-    var s = state.set, dest = el.wbDest.value.trim();
-    s.wb.регион = /^-?\d+$/.test(dest) ? Number(dest) : dest;
-    s.wb.регионИмя = el.wbDestName.value;
+    var s = state.set;
     s.wb.показывать = el.showWb.checked; s.shop.показывать = el.showShop.checked;
     s.расписание.часыМСК = Array.prototype.filter.call(el.hours.children, function (b) { return b.getAttribute('aria-pressed') === 'true'; })
       .map(function (b) { return +b.getAttribute('data-h'); });
@@ -462,9 +455,7 @@
   function validateSettings() {
     var s = state.set, errors = [];
     if (!settingsDirty()) return errors;
-    s.wb.регионИмя = String(s.wb.регионИмя == null ? '' : s.wb.регионИмя).trim();
     if (!s.расписание.часыМСК.length) errors.push('Когда обновлять цены: выберите хотя бы один час');
-    if (!Number.isInteger(s.wb.регион)) errors.push('Показ цен: регион WB — целое число, например -1257786 (Москва)');
     return errors;
   }
 
